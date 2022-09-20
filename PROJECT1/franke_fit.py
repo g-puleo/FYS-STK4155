@@ -26,10 +26,9 @@ def FrankeFunction(x,y):
 	return term1 + term2 + term3 + term4
 
 fig = plt.figure()
-ax = fig.gca(projection='3d')
 # Make data.
-Nx = 100
-Ny = 100
+Nx = 10
+Ny = 10
 maxdegree = 5
 MSE_train_list = np.zeros(maxdegree+1)
 MSE_test_list = np.zeros(maxdegree+1)
@@ -40,26 +39,36 @@ beta_matrix = np.zeros( ( (maxdegree+1)**2, maxdegree+1 ) )
 x = np.random.rand(Nx, 1)
 y = np.random.rand(Ny, 1)
 x, y = np.meshgrid(x,y)
-
+print(f"Franke(0,0)={FrankeFunction(0,0)}")
 for degree in range(maxdegree+1):
 	
 	#define own functions for MSE and R2 score
 	
 	#generate target data
-	z = (FrankeFunction(x, y) + 0.1*np.random.randn(Nx,Ny)).reshape(-1,1)
+	z = (FrankeFunction(x, y) + 1.5*np.random.randn(Nx,Ny)).reshape(-1,1)
 
 	#set up design matrix for a polynomial of given degree
 	X = np.zeros(( Nx*Ny, (degree+1)**2))
+	counter = 0
 	for S in range(degree+1):
 		for ii in range(S+1):
 			# need to figure out what the right column index is = (degree+1)*ii+jj
-			X[:,column_index:column_index+1]  = (x**ii * y**(S-ii)).reshape(-1,1)
-
+			X[:,counter:counter+1]  = (x**ii * y**(S-ii)).reshape(-1,1)
+			counter+=1
 	#split data into train and test using scikitlearn
 	X_train, X_test, z_train, z_test = train_test_split(X,z, test_size=0.2)
 
+	# scaler = StandardScaler()
+	# scaler.fit(X_train)
+	# X_train = scaler.transform(X_train)
+	# X_test = scaler.transform(X_test)
+
+
 	#find optimal parameters using OLS
 	beta_opt = np.linalg.pinv(X_train.T @ X_train)@X_train.T @ z_train
+	#this matrix contains values of beta which we aim to plot
+	#each column of this matrix will contain values of the parameters beta
+	#we are then plotting some of the rows
 	beta_matrix[0:(degree+1)**2, degree:degree+1 ] = beta_opt
 	z_tilde_train = X_train @ beta_opt
 	z_tilde_test  = X_test @ beta_opt
@@ -69,6 +78,8 @@ for degree in range(maxdegree+1):
 	MSE_test_list[degree]  = MSE(z_test, z_tilde_test)
 	R2_train_list[degree]  = r2_score(z_train, z_tilde_train)
 	R2_test_list[degree]   = r2_score(z_test, z_tilde_test)
+
+	
 # # Plot the surface.
 # surf = ax.scatter(x, y, z, cmap=cm.coolwarm, linewidth=0, antialiased=False)
 # # Customize the z axis.
@@ -96,7 +107,7 @@ for ii in range(2):
 
 fig_beta, axs_beta = plt.subplots(1,1)
 
-for jj in range(4):
+for jj in range(6):
 	axs_beta.plot( np.arange(maxdegree+1), beta_matrix[jj,:], label=f"$beta {jj}$")
 
 
