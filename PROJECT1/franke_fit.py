@@ -12,19 +12,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import r2_score
 
-def MSE(z, ztilde):
-	return (1/len(z))*np.sum((z-ztilde)**2)
+import utils
 
-def R2(z,ztilde):
-	return 1- (MSE(z,ztilde))/np.var(z)
 
-def FrankeFunction(x,y):
-	term1 = 0.75*np.exp(-(0.25*(9*x-2)**2) - 0.25*((9*y-2)**2))
-	term2 = 0.75*np.exp(-((9*x+1)**2)/49.0 - 0.1*(9*y+1))
-	term3 = 0.5*np.exp(-(9*x-7)**2/4.0 - 0.25*((9*y-3)**2))
-	term4 = -0.2*np.exp(-(9*x-4)**2 - (9*y-7)**2)
-	return term1 + term2 + term3 + term4
 
+bootstrap_ = True
 fig = plt.figure()
 # Make data.
 Nx = 10
@@ -39,13 +31,14 @@ beta_matrix = np.zeros( ( (maxdegree+1)**2, maxdegree+1 ) )
 x = np.random.rand(Nx, 1)
 y = np.random.rand(Ny, 1)
 x, y = np.meshgrid(x,y)
-print(f"Franke(0,0)={FrankeFunction(0,0)}")
+
+#generate target data
+z = (FrankeFunction(x, y) + 0.1*np.random.randn(Nx,Ny)).reshape(-1,1)
+
 for degree in range(maxdegree+1):
 	
 	#define own functions for MSE and R2 score
 	
-	#generate target data
-	z = (FrankeFunction(x, y) + 1.5*np.random.randn(Nx,Ny)).reshape(-1,1)
 
 	#set up design matrix for a polynomial of given degree
 	X = np.zeros(( Nx*Ny, (degree+1)**2))
@@ -57,27 +50,43 @@ for degree in range(maxdegree+1):
 			counter+=1
 	#split data into train and test using scikitlearn
 	X_train, X_test, z_train, z_test = train_test_split(X,z, test_size=0.2)
+    
+	scaler = StandardScaler()
+	scaler.fit(X_train)
+	X_train = scaler.transform(X_train)
+	X_test = scaler.transform(X_test)
+	X_train[:,0:1] = 1
+	X_test[:,0:1] = 1
 
-	# scaler = StandardScaler()
-	# scaler.fit(X_train)
-	# X_train = scaler.transform(X_train)
-	# X_test = scaler.transform(X_test)
+  	if bootstrap_:
+  		#NEXT TIME: compute average MSE on all models obtained by bootsrap.
+  		#-> PLOT : TRAIN_MSE AND TEST_MSE as function of polynomial complexity
+  		#-> 		think of the bias - variance tradeoff
+  		for i in range(X_train.shape[0]):
+  			X_train_b, z_train_b = Bootstrap(X_train, z_train)
+  			beta_opt = np.linalg.pinv(X_train.T @ X_train)@X_train.T @ z_train
+  			z_tilde_train_b = X_train_b @ beta_opt
+			z_tilde_test_b  = X_test_b @ beta_opt
+		 	MSE_
+	
 
 
-	#find optimal parameters using OLS
-	beta_opt = np.linalg.pinv(X_train.T @ X_train)@X_train.T @ z_train
-	#this matrix contains values of beta which we aim to plot
-	#each column of this matrix will contain values of the parameters beta
-	#we are then plotting some of the rows
-	beta_matrix[0:(degree+1)**2, degree:degree+1 ] = beta_opt
-	z_tilde_train = X_train @ beta_opt
-	z_tilde_test  = X_test @ beta_opt
+	else: 
+		#find optimal parameters using OLS
+	
+		beta_opt = np.linalg.pinv(X_train.T @ X_train)@X_train.T @ z_train
+		#this matrix contains values of beta which we aim to plot
+		#each column of this matrix will contain values of the parameters beta
+		#we are then plotting some of the rows
+		beta_matrix[0:(degree+1)**2, degree:degree+1 ] = beta_opt
+		z_tilde_train = X_train @ beta_opt
+		z_tilde_test  = X_test @ beta_opt
 
-	#evaluate MSE
-	MSE_train_list[degree]  = MSE(z_train, z_tilde_train)
-	MSE_test_list[degree]  = MSE(z_test, z_tilde_test)
-	R2_train_list[degree]  = r2_score(z_train, z_tilde_train)
-	R2_test_list[degree]   = r2_score(z_test, z_tilde_test)
+		#evaluate MSE
+		MSE_train_list[degree]  = MSE(z_train, z_tilde_train)
+		MSE_test_list[degree]  = MSE(z_test, z_tilde_test)
+		R2_train_list[degree]  = r2_score(z_train, z_tilde_train)
+		R2_test_list[degree]   = r2_score(z_test, z_tilde_test)
 
 	
 # # Plot the surface.
@@ -116,3 +125,8 @@ axs_beta.legend()
 	
 
 plt.show()
+
+
+if main=="__MAIN__"ù
+	program()
+	prgroam(bootrstap tru )
