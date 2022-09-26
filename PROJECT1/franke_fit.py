@@ -1,6 +1,7 @@
 # Here we test the performance of OLS fit using the Franke Function to generate our dataset
 # adding a random gaussian uncorrelated noise. Polynomials up to degree 5 are used as train
 
+#test
 
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
@@ -13,7 +14,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import r2_score
 
 import utils
-
 
 
 bootstrap_ = True
@@ -36,9 +36,9 @@ x, y = np.meshgrid(x,y)
 z = (FrankeFunction(x, y) + 0.1*np.random.randn(Nx,Ny)).reshape(-1,1)
 
 for degree in range(maxdegree+1):
-	
+
 	#define own functions for MSE and R2 score
-	
+
 
 	#set up design matrix for a polynomial of given degree
 	X = np.zeros(( Nx*Ny, (degree+1)**2))
@@ -50,7 +50,7 @@ for degree in range(maxdegree+1):
 			counter+=1
 	#split data into train and test using scikitlearn
 	X_train, X_test, z_train, z_test = train_test_split(X,z, test_size=0.2)
-    
+
 	scaler = StandardScaler()
 	scaler.fit(X_train)
 	X_train = scaler.transform(X_train)
@@ -68,12 +68,12 @@ for degree in range(maxdegree+1):
   			z_tilde_train_b = X_train_b @ beta_opt
 			z_tilde_test_b  = X_test_b @ beta_opt
 		 	MSE_
-	
 
 
-	else: 
+
+	else:
 		#find optimal parameters using OLS
-	
+
 		beta_opt = np.linalg.pinv(X_train.T @ X_train)@X_train.T @ z_train
 		#this matrix contains values of beta which we aim to plot
 		#each column of this matrix will contain values of the parameters beta
@@ -88,7 +88,7 @@ for degree in range(maxdegree+1):
 		R2_train_list[degree]  = r2_score(z_train, z_tilde_train)
 		R2_test_list[degree]   = r2_score(z_test, z_tilde_test)
 
-	
+
 # # Plot the surface.
 # surf = ax.scatter(x, y, z, cmap=cm.coolwarm, linewidth=0, antialiased=False)
 # # Customize the z axis.
@@ -122,7 +122,7 @@ for jj in range(6):
 
 axs_beta.grid(visible=True)
 axs_beta.legend()
-	
+
 
 plt.show()
 
