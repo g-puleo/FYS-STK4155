@@ -16,8 +16,8 @@ def FrankeFunction(x,y):
     term4 = -0.2*np.exp(-(9*x-4)**2 - (9*y-7)**2)
     return term1 + term2 + term3 + term4
 
-def Bootstrap( design_matrix, target ):
-    '''inputs: 
+def singleBootstrap( design_matrix, target ):
+    '''inputs:
         design_matrix (numpy.ndarray)
         target (numpy.array)
         '''
