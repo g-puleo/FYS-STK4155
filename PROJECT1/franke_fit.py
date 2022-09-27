@@ -1,8 +1,5 @@
 # Here we test the performance of OLS fit using the Franke Function to generate our dataset
 # adding a random gaussian uncorrelated noise. Polynomials up to degree 5 are used as train
-
-#test
-
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from matplotlib import cm
@@ -40,10 +37,6 @@ z = (utils.FrankeFunction(x, y) + 0.2*np.random.randn(Nx,Ny)).reshape(-1,1)
 
 
 for degree in range(maxdegree+1):
-
-	#define own functions for MSE and R2 score
-
-
 	#set up design matrix for a polynomial of given degree
 	X = np.zeros(( Nx*Ny, (degree+1)**2))
 	counter = 0
@@ -53,12 +46,8 @@ for degree in range(maxdegree+1):
 			X[:,counter:counter+1]  = (x**ii * y**(S-ii)).reshape(-1,1)
 			counter+=1
 	#split data into train and test using scikitlearn
-<<<<<<< HEAD
 	X_train, X_test, z_train, z_test = train_test_split(X,z, test_size=0.2, random_state=26092022)
-=======
-	X_train, X_test, z_train, z_test = train_test_split(X,z, test_size=0.2)
 
->>>>>>> 4adccdf2ff0bdbd20d3f8102439db6c62f282942
 	scaler = StandardScaler()
 	scaler.fit(X_train)
 	X_train = scaler.transform(X_train)
@@ -66,7 +55,6 @@ for degree in range(maxdegree+1):
 	X_train[:,0:1] = 1
 	X_test[:,0:1] = 1
 
-<<<<<<< HEAD
 	if bootstrap_:
 		#NEXT TIME: compute average MSE on all models obtained by bootsrap.
 		#-> PLOT : TRAIN_MSE AND TEST_MSE as function of polynomial complexity
@@ -94,23 +82,8 @@ for degree in range(maxdegree+1):
 		# print(z_pred[0,:])
 		variance[degree] = np.mean(np.var(z_pred, axis=1, keepdims=True))
 		error[degree] = np.mean( np.mean( (z_pred-z_test)**2, axis=1, keepdims=True))
+
 	else: 
-=======
-  	if bootstrap_:
-  		#NEXT TIME: compute average MSE on all models obtained by bootsrap.
-  		#-> PLOT : TRAIN_MSE AND TEST_MSE as function of polynomial complexity
-  		#-> 		think of the bias - variance tradeoff
-  		for i in range(X_train.shape[0]):
-  			X_train_b, z_train_b = Bootstrap(X_train, z_train)
-  			beta_opt = np.linalg.pinv(X_train.T @ X_train)@X_train.T @ z_train
-  			z_tilde_train_b = X_train_b @ beta_opt
-			z_tilde_test_b  = X_test_b @ beta_opt
-		 	MSE_
-
-
-
-	else:
->>>>>>> 4adccdf2ff0bdbd20d3f8102439db6c62f282942
 		#find optimal parameters using OLS
 
 		beta_opt = np.linalg.pinv(X_train.T @ X_train)@X_train.T @ z_train
@@ -124,7 +97,7 @@ for degree in range(maxdegree+1):
 		MSE_test = utils.MSE(z_test, z_tilde_test)
 		R2_train_list[degree]  = utils.R2(z_train, z_tilde_train)
 		R2_test_list[degree]   = utils.R2(z_test, z_tilde_test)
-	
+
 	#evaluate MSE
 	MSE_train_list[degree]  = MSE_train
 	MSE_test_list[degree]  = MSE_test
@@ -160,16 +133,8 @@ for ii in range(1):
 # for jj in range(6):
 # 	axs_beta.plot( np.arange(maxdegree+1), beta_matrix[jj,:], label=f"$beta {jj}$")
 
-
-<<<<<<< HEAD
 # axs_beta.grid(visible=True)
 # axs_beta.legend()
-	
-=======
-axs_beta.grid(visible=True)
-axs_beta.legend()
-
->>>>>>> 4adccdf2ff0bdbd20d3f8102439db6c62f282942
 
 fig_bvt, axs_bvt = plt.subplots(1,1)
 
@@ -179,13 +144,6 @@ axs_bvt.plot(np.arange(maxdegree+1), variance, label='variance')
 axs_bvt.legend()
 plt.show()
 
-
-<<<<<<< HEAD
 # if main=="__MAIN__"ù
 # 	program()
 # 	prgroam(bootrstap tru )
-=======
-if main=="__MAIN__"ù
-	program()
-	prgroam(bootrstap tru )
->>>>>>> 4adccdf2ff0bdbd20d3f8102439db6c62f282942
