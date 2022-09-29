@@ -17,11 +17,15 @@ from sklearn.metrics import mean_squared_error
 import utils
 import sys
 
+import warnings
+warnings.filterwarnings("ignore")
+
+
 np.random.seed(110222)
 fig = plt.figure()
 # Make data.
-Nx = 50
-Ny = 50
+Nx = 5
+Ny = 5
 maxdegree = 10
 MSE_train_list = np.zeros(maxdegree+1)
 MSE_test_list = np.zeros(maxdegree+1)
@@ -56,6 +60,8 @@ def OLS(X_train, X_test, z_train, lamb=0):
 	beta_opt = np.linalg.pinv(X_train.T @ X_train)@X_train.T @ z_train
 	z_tilde_train = X_train @ beta_opt #+ z_mean_train
 	z_tilde_test  = X_test @ beta_opt #+ z_mean_train
+	z_tilde_train = np.ravel(z_tilde_train)
+	z_tilde_test= np.ravel(z_tilde_test)
 	return beta_opt, z_tilde_train, z_tilde_test
 
 def Ridge(X_train, X_test, z_train, lamb):
@@ -69,12 +75,15 @@ def Ridge(X_train, X_test, z_train, lamb):
 	beta_opt = np.linalg.pinv(tmp + lamb* np.eye(tmp.shape[0]))@X_train.T @ z_train
 	z_tilde_train = X_train @ beta_opt #+ z_mean_train
 	z_tilde_test  = X_test @ beta_opt #+ z_mean_train
+	z_tilde_train = np.ravel(z_tilde_train)
+	z_tilde_test= np.ravel(z_tilde_test)
+
 	return beta_opt, z_tilde_train, z_tilde_test
 
 
 def Lasso(X_train, X_test, z_train, lamb):
 	X_train, X_test, z_mean_train = scale(X_train, X_test, z_train)
-	clf = linear_model.LassoCV(alphas=np.array([lamb]), fit_intercept=False)
+	clf = linear_model.LassoCV(alphas=np.array([lamb]), fit_intercept=True)
 	clf.fit(X_train, z_train)
 	z_tilde_train  = clf.predict(X_train) #questionable, u get back original z_train?
 	z_tilde_test = clf.predict(X_test)
@@ -176,11 +185,16 @@ def Solver(method, lamb = 0, useBootstrap = False, useCrossval = False):
 			#find optimal parameters using OLS
 			beta_opt, z_tilde_train, z_tilde_test = method(X_train, X_test, z_train, lamb)
 			beta_matrix[0:(degree+1)*(degree+2)//2, degree ] = beta_opt.ravel()
-
+			#For Lasso get 2 diff values using diff MSE functions.
 			MSE_train = utils.MSE(z_train, z_tilde_train)
-			MSE_train = mean_squared_error(z_train, z_tilde_train)
+			MSE_train2 = mean_squared_error(z_train, z_tilde_train)
+			if degree == 1:
+				print(z_tilde_train)
+				print(z_tilde_test)
+				print(MSE_train)
+				print(MSE_train2)
 			MSE_test = utils.MSE(z_test, z_tilde_test)
-			MSE_test = mean_squared_error(z_test, z_tilde_test)
+			#MSE_test = mean_squared_error(z_test, z_tilde_test)
 			R2_train_list[degree]  = utils.R2(z_train, z_tilde_train)
 			R2_test_list[degree]   = utils.R2(z_test, z_tilde_test)
 
@@ -207,6 +221,7 @@ def Solver(method, lamb = 0, useBootstrap = False, useCrossval = False):
 #Solver(OLS, useBootstrap=False, useCrossval=False, useScaling = False)
 plt.figure(1)
 Solver(Lasso, useBootstrap=False, useCrossval=False, lamb=0.01)
+#plt.savefig("utilmet")
 plt.show()
 
 
