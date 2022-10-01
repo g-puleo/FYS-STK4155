@@ -26,7 +26,7 @@ fig = plt.figure()
 # Make data.
 Nx = 15
 Ny = 15
-maxdegree = 10
+maxdegree = 5
 MSE_train_list = np.zeros(maxdegree+1)
 MSE_test_list = np.zeros(maxdegree+1)
 R2_train_list = np.zeros(maxdegree+1)
@@ -52,28 +52,36 @@ def scale(X_train, X_test, z_train):
 	X_test[:,0] = 0
 	return X_train, X_test, z_mean_train
 
-def OLS(X_train, X_test, z_train, lamb=0):
-	X_train, X_test, z_mean_train = scale(X_train, X_test, z_train)
-	z_train -= z_mean_train
-
-	beta_opt = np.linalg.pinv(X_train.T @ X_train)@X_train.T @ z_train
-	z_tilde_train = X_train @ beta_opt + z_mean_train
-	z_tilde_test  = X_test @ beta_opt + z_mean_train
-	#z_tilde_train = np.ravel(z_tilde_train)
-	#z_tilde_test= np.ravel(z_tilde_test)
-	return beta_opt, z_tilde_train, z_tilde_test
+def OLS(X_train, X_test, z_train):
+	#Ridge regression reduces to OLS when lambda=0
+	return Ridge(X_train, X_test, z_train, lamb=0)
 
 def Ridge(X_train, X_test, z_train, lamb):
-	X_train, X_test, z_mean_train = scale(X_train, X_test, z_train)
+
 	#Subtract mean from z to remove intercept
 	#Find beta opt wtih new equation
 	#Add mean of z to prediction_z
-	z_train -= z_mean_train
 
-	tmp = X_train.T @ X_train
-	beta_opt = np.linalg.pinv(tmp + lamb* np.eye(tmp.shape[0]))@X_train.T @ z_train
-	z_tilde_train = X_train @ beta_opt + z_mean_train
-	z_tilde_test  = X_test @ beta_opt + z_mean_train
+	#before was:
+	#X_train, X_test, z_mean_train = scale(X_train, X_test, z_train)
+	#z_train -= z_mean_train
+
+	#now: don't scale inside the ridge
+	#first: calculate intercept, with standard OLS formula
+	#here calculate also all other betas, which will be overwritten later
+	#probably could improve the way of doing it.
+	beta_opt = np.linalg.pinv(X_train.T @ X_train)@X_train.T @ z_train
+	#overwrite all beta's using Ridge regression
+
+	if lamb>0: #if lambda is 0, already have the solution for beta_opt
+		
+		#note we drop the first column of the design matrix. 
+		tmp = X_train[:,1:].T @ X_train[:,1:]
+		beta_opt[1:] = np.linalg.pinv(tmp + lamb* np.eye(tmp.shape[0]))@X_train[:,1:].T @ z_train
+
+	z_tilde_train = X_train @ beta_opt
+	z_tilde_test  = X_test @ beta_opt
+
 	#z_tilde_train = np.ravel(z_tilde_train)
 	#z_tilde_test= np.ravel(z_tilde_test)
 
@@ -94,7 +102,7 @@ def Lasso(X_train, X_test, z_train, lamb):
 
 def Solver(method, lamb = 0, useBootstrap = False, useCrossval = False):
 	#generate target data
-	z = (utils.FrankeFunction(x, y) + 0.1*np.random.randn(Nx,Ny)).reshape(-1,1)
+	z = (utils.FrankeFunction(x, y) + np.random.randn(Nx,Ny)).reshape(-1,1)
 	#print(z.shape)
 
 	#Print info
@@ -196,6 +204,8 @@ def Solver(method, lamb = 0, useBootstrap = False, useCrossval = False):
 	plt.title(f"{method.__name__} boot: {useBootstrap}, cross: {useCrossval}")
 	plt.plot(np.arange(maxdegree+1), MSE_train_list, label = "Train")
 	plt.plot(np.arange(maxdegree+1), MSE_test_list, label = "Test")
+	plt.ylabel("MSE")
+	plt.legend()
 	plt.grid(True)
 
 	"""
@@ -209,8 +219,8 @@ def Solver(method, lamb = 0, useBootstrap = False, useCrossval = False):
 
 #Solver(OLS, useBootstrap=False, useCrossval=False, useScaling = False)
 plt.figure(1)
-Solver(OLS, useBootstrap=False, useCrossval=False, lamb=0.01)
-plt.savefig("MSE_OSE.png")
+Solver(Ridge, useBootstrap=False, useCrossval=True, lamb=0.01)
+#plt.savefig("MSE_OSE.png")
 plt.show()
 
 
