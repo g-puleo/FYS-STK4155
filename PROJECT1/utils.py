@@ -4,6 +4,8 @@ import numpy as np
 
 
 def MSE(z, ztilde):
+    z = z.ravel()
+    ztilde = ztilde.ravel()
     return (1/len(z))*np.sum((z-ztilde)**2)
 
 def R2(z,ztilde):
