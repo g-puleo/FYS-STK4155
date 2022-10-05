@@ -68,10 +68,11 @@ def Ridge_scikit(X_train, X_test, z_train, lamb):
 
 def Lasso(X_train, X_test, z_train, lamb):
 	X_train_, X_test_, z_mean_train = scale(X_train, X_test, z_train)
-	clf = linear_model.LassoCV(alphas=np.array([lamb]), fit_intercept=True)
+	clf = linear_model.Lasso(alpha = lamb, fit_intercept=True)
 	clf.fit(X_train_, z_train)
 	z_tilde_train  = clf.predict(X_train_) #questionable, u get back original z_train?
-	z_tilde_test = clf.predict(X_test_)
+	#z_tilde_train = np.reshape(z_tilde_train.shape[0],1)
+	z_tilde_test = clf.predict(X_test_).reshape(-1,1)
 	beta_opt = clf.coef_
 	#print(beta_opt)
 	#print(z_tilde_test)
@@ -119,11 +120,6 @@ def Solver(method, lamb = 0, useBootstrap = False, useCrossval = False, mindegre
 			MSE_avg_train = 0
 			MSE_avg_test = 0
 			z_pred = np.empty((X_test.shape[0], N_bootstraps))
-			"""
-			if Lasso:
-				bootstrap()
-				scitkit.Lasso(data)
-			"""
 			for i in range(N_bootstraps):
 				#When ridge, new mean value so we have to scale here. Dont add 1 column.
 				X_train_b, z_train_b = utils.singleBootstrap(X_train, z_train)
@@ -179,6 +175,7 @@ def Solver(method, lamb = 0, useBootstrap = False, useCrossval = False, mindegre
 
 	degrees_list = np.arange(maxdegree+1)
 	#Basic plot of MSE scores for train and test.
+
 	"""
 	plt.title(f"{method.__name__} boot: {useBootstrap}, cross: {useCrossval}")
 	plt.plot(degrees_list, MSE_train_list[mindegree:], label = "Train")
@@ -186,6 +183,7 @@ def Solver(method, lamb = 0, useBootstrap = False, useCrossval = False, mindegre
 	plt.legend()
 	plt.grid(True)
 	"""
+
 
 	return degrees_list, MSE_train_list, MSE_test_list, bias, variance
 
@@ -199,12 +197,12 @@ plt.show()
 """
 
 
-np.random.seed(34632)
+np.random.seed(3463223)
 fig = plt.figure()
 # Make data.
-Nx = 15
-Ny = 15
-maxdeg = 15
+Nx = 16
+Ny = 16
+maxdeg = 12
 MSE_train_list = np.zeros(maxdeg+1)
 MSE_test_list = np.zeros(maxdeg+1)
 R2_train_list = np.zeros(maxdeg+1)
@@ -219,7 +217,28 @@ y = np.random.rand(Ny, 1)
 x, y = np.meshgrid(x,y)
 z = (utils.FrankeFunction(x, y) + 0.1*np.random.randn(Nx,Ny)).reshape(-1,1)
 
+"""
+plt.figure(1)
+Solver(Lasso, useBootstrap=False, useCrossval=False, lamb=0.0001, maxdegree = maxdeg)
+plt.figure(2)
+Solver(Lasso, useBootstrap=False, useCrossval=True, lamb=0.0001, maxdegree = maxdeg)
+plt.show()
+"""
 
+
+"""
+#Bias - variance tradeoff plotting:
+degrees_list, MSE_train_list, MSE_test_list, bias, variance = Solver(OLS, useBootstrap=True, useCrossval=False, maxdegree = maxdeg)
+plt.plot(degrees_list, bias, label="Bias")
+plt.plot(degrees_list, variance, label="Variance")
+plt.plot(degrees_list, MSE_test_list, label="Error")
+plt.legend()
+plt.show()
+"""
+
+
+"""
+#Gridsearch
 lambda_vals = np.logspace(-6, 0, 7)
 mindeg = 3
 MSE_2d = np.zeros(shape=(maxdeg+1-mindeg ,len(lambda_vals)))
@@ -234,6 +253,7 @@ df= pd.DataFrame(MSE_2d, columns= lambda_vals, index = np.arange(mindeg, maxdeg+
 fig = sns.heatmap(df, cbar_kws={'label': 'MSE'})
 fig.set(xlabel="Lambda", ylabel="Degree of complexity")
 plt.show()
+"""
 
 
 #make grid search: lamba: 1e-5 -> 1,  degree: 3->7
