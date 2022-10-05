@@ -227,6 +227,11 @@ plt.show()
 
 
 """
+Config for a nice plot OLS bias var:
+np.random.seed(3463223)
+Nx = 16
+Ny = 16
+maxdeg = 12
 #Bias - variance tradeoff plotting:
 degrees_list, MSE_train_list, MSE_test_list, bias, variance = Solver(OLS, useBootstrap=True, useCrossval=False, maxdegree = maxdeg)
 plt.plot(degrees_list, bias, label="Bias")
