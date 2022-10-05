@@ -1,3 +1,0 @@
-1. What causes the difference in MSE for Lasso built in vs selfmade MSE function.
-2. Does the Lasso & Ridge implmentation look ok?
-3. Does scaling look correct, have to add 1 in first column?
