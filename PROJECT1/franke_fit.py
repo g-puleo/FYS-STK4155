@@ -55,7 +55,7 @@ def Lasso():
 
 def Solver(method, lamb = -1, useBootstrap = False, useCrossval = False, useScaling = True):
 	#generate target data
-	z = (utils.FrankeFunction(x, y) + 1*np.random.randn(Nx,Ny)).reshape(-1,1)
+	z = (utils.FrankeFunction(x, y) + 0.1*np.random.randn(Nx,Ny)).reshape(-1,1)
 
 	if method not in [OLS, Ridge, Lasso]:
 		sys.exit(f"Error: Method [{method}] is not compatible. Must be in [OLS, Ridge, Lasso]")
@@ -203,7 +203,7 @@ def Solver(method, lamb = -1, useBootstrap = False, useCrossval = False, useScal
 	plt.show()
 	"""
 
-Solver(OLS, useBootstrap=False, useCrossval=True, useScaling = False)
+Solver(OLS, useBootstrap=False, useCrossval=False, useScaling = False)
 #Solver(OLS, useBootstrap=False, useCrossval=False)
 #Solver(OLS, useBootstrap=True, useCrossval=False)
 
