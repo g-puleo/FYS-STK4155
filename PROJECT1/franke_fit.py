@@ -79,7 +79,7 @@ def Lasso(X_train, X_test, z_train, lamb):
 	return beta_opt, z_tilde_train, z_tilde_test
 
 
-def Solver(method, lamb = 0, useBootstrap = False, useCrossval = False, mindegree = 0, maxdegree = 12):
+def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval = False, mindegree = 0, maxdegree = 12):
 	#generate target data
 	#z = (utils.FrankeFunction(x, y) + 0.1*np.random.randn(Nx,Ny)).reshape(-1,1)
 
@@ -176,13 +176,13 @@ def Solver(method, lamb = 0, useBootstrap = False, useCrossval = False, mindegre
 	degrees_list = np.arange(maxdegree+1)
 	#Basic plot of MSE scores for train and test.
 
-	"""
+
 	plt.title(f"{method.__name__} boot: {useBootstrap}, cross: {useCrossval}")
 	plt.plot(degrees_list, MSE_train_list[mindegree:], label = "Train")
 	plt.plot(degrees_list, MSE_test_list[mindegree:], label = "Test")
 	plt.legend()
 	plt.grid(True)
-	"""
+
 
 
 	return degrees_list, MSE_train_list, MSE_test_list, bias, variance
@@ -200,8 +200,8 @@ plt.show()
 np.random.seed(3463223)
 fig = plt.figure()
 # Make data.
-Nx = 16
-Ny = 16
+Nx_ = 16
+Ny_ = 16
 maxdeg = 12
 MSE_train_list = np.zeros(maxdeg+1)
 MSE_test_list = np.zeros(maxdeg+1)
@@ -212,16 +212,14 @@ bias = np.zeros(maxdeg+1)
 variance = np.zeros(maxdeg+1)
 error = np.zeros(maxdeg+1)
 #generate x,y data from uniform distribution
-x = np.random.rand(Nx, 1)
-y = np.random.rand(Ny, 1)
-x, y = np.meshgrid(x,y)
-z = (utils.FrankeFunction(x, y) + 0.1*np.random.randn(Nx,Ny)).reshape(-1,1)
+x_ = np.random.rand(Nx_, 1)
+y_ = np.random.rand(Ny_, 1)
+x_, y_ = np.meshgrid(x_,y_)
+z_ = (utils.FrankeFunction(x_, y_) + 0.1*np.random.randn(Nx_,Ny_)).reshape(-1,1)
 
 """
 plt.figure(1)
-Solver(Lasso, useBootstrap=False, useCrossval=False, lamb=0.0001, maxdegree = maxdeg)
-plt.figure(2)
-Solver(Lasso, useBootstrap=False, useCrossval=True, lamb=0.0001, maxdegree = maxdeg)
+Solver(x_, y_, z_, Nx_, Ny_, OLS, useBootstrap=False, useCrossval=False, lamb=0.0001, maxdegree = maxdeg)
 plt.show()
 """
 
