@@ -260,13 +260,5 @@ fig.set(xlabel="Lambda", ylabel="Degree of complexity")
 plt.show()
 """
 
-
-#make grid search: lamba: 1e-5 -> 1,  degree: 3->7
-# seabon package
-# sns.heatmap(mat)
-# mat -> mse for every lambda and degree [2d array]
-
-
-
 #Solver(OLS, useBootstrap=False, useCrossval=False)
 #Solver(OLS, useBootstrap=True, useCrossval=False)
