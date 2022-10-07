@@ -11,60 +11,97 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import r2_score
 from sklearn.utils import shuffle
 from sklearn.model_selection import KFold
+from sklearn import linear_model
+
+from sklearn.metrics import mean_squared_error
 import utils
 import sys
+import seaborn as sns
+import pandas as pd
 
-np.random.seed(110222)
-fig = plt.figure()
-# Make data.
-Nx = 100
-Ny = 100
-maxdegree = 10
-MSE_train_list = np.zeros(maxdegree+1)
-MSE_test_list = np.zeros(maxdegree+1)
-R2_train_list = np.zeros(maxdegree+1)
-R2_test_list = np.zeros(maxdegree+1)
-beta_matrix = np.zeros( ( (maxdegree+1)**2, maxdegree+1 ) )
-bias = np.zeros(maxdegree+1)
-variance = np.zeros(maxdegree+1)
-error = np.zeros(maxdegree+1)
-#generate x,y data from uniform distribution
-x = np.random.rand(Nx, 1)
-y = np.random.rand(Ny, 1)
-x, y = np.meshgrid(x,y)
+import warnings
+warnings.filterwarnings("ignore")
 
 
+def scale(X_train, X_test, z_train):
+	#Scale data and return it + mean value from target train data.
+	scaler = StandardScaler()
+	scaler.fit(X_train)
+	X_train_ = scaler.transform(X_train)
+	X_test_ = scaler.transform(X_test)
+	z_mean_train = np.mean(z_train)
+	#X_train[:,0] = 0
+	#_test[:,0] = 0
+	return X_train_, X_test_, z_mean_train
 
-
-def OLS(X_train, X_test, z_train):
-	beta_opt = np.linalg.pinv(X_train.T @ X_train)@X_train.T @ z_train
-	#this matrix contains values of beta which we aim to plot
-	#each column of this matrix will contain values of the parameters beta
-	#we are then plotting some of the rows
-	z_tilde_train = X_train @ beta_opt
-	z_tilde_test  = X_test @ beta_opt
+def OLS(X_train, X_test, z_train, lamb=0):
+	beta_opt, z_tilde_train, z_tilde_test = Ridge(X_train, X_test, z_train, lamb = 0)
 	return beta_opt, z_tilde_train, z_tilde_test
 
-def Ridge():
-	print("yo")
+def Ridge(X_train, X_test, z_train, lamb):
+	X_train_, X_test_, z_mean_train = scale(X_train, X_test, z_train)
+	X_train_ = X_train_[:, 1:]
+	X_test_ = X_test_[:, 1:]
+	#Subtract mean from z to remove intercept
+	#Find beta opt wtih new equation
+	#Add mean of z to prediction_z
+	z_train_ = z_train - z_mean_train
+
+	tmp = X_train_.T @ X_train_
+	beta_opt = np.linalg.pinv(tmp + lamb* np.eye(tmp.shape[0]))@X_train_.T @ z_train_
+	z_tilde_train = X_train_ @ beta_opt + z_mean_train
+	z_tilde_test  = X_test_ @ beta_opt + z_mean_train
+	#z_tilde_train = np.ravel(z_tilde_train)
+	#z_tilde_test= np.ravel(z_tilde_test)
+
+	return beta_opt, z_tilde_train, z_tilde_test
+
+def Ridge_scikit(X_train, X_test, z_train, lamb):
+	X_train_, X_test_, z_mean_train = scale(X_train, X_test, z_train)
+	clf = linear_model.Ridge(alpha=lamb, fit_intercept=True)
+	clf.fit(X_train_, z_train)
+	z_tilde_train  = clf.predict(X_train_)
+	z_tilde_test = clf.predict(X_test_)
+	beta_opt = clf.coef_
+	return beta_opt, z_tilde_train, z_tilde_test
 
 
-def Lasso():
-	print("yo")
+def Lasso(X_train, X_test, z_train, lamb):
+	X_train_, X_test_, z_mean_train = scale(X_train, X_test, z_train)
+	clf = linear_model.Lasso(alpha = lamb, fit_intercept=True)
+	clf.fit(X_train_, z_train)
+	z_tilde_train  = clf.predict(X_train_) #questionable, u get back original z_train?
+	#z_tilde_train = np.reshape(z_tilde_train.shape[0],1)
+	z_tilde_test = clf.predict(X_test_).reshape(-1,1)
+	beta_opt = clf.coef_
+	#print(beta_opt)
+	#print(z_tilde_test)
+	return beta_opt, z_tilde_train, z_tilde_test
 
 
-def Solver(method, lamb = -1, useBootstrap = False, useCrossval = False, useScaling = True):
+def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval = False, mindegree = 0, maxdegree = 12):
 	#generate target data
-	z = (utils.FrankeFunction(x, y) + 0.1*np.random.randn(Nx,Ny)).reshape(-1,1)
+	#z = (utils.FrankeFunction(x, y) + 0.1*np.random.randn(Nx,Ny)).reshape(-1,1)
 
-	if method not in [OLS, Ridge, Lasso]:
+	#Print info
+	print(f"Running solver with {method.__name__}. Degrees: {maxdegree}.", end = "")
+	if useBootstrap:
+		print("Using bootstrap ", end ="")
+	elif useCrossval:
+		print(f" Using crossvalidation with 5 k-folds.")
+	print("\n")
+
+	#Check if correct input
+	if method not in [OLS, Ridge, Lasso, Ridge_scikit]:
 		sys.exit(f"Error: Method [{method}] is not compatible. Must be in [OLS, Ridge, Lasso]")
-	if method != OLS:
-		if lamb < 0:
-			sys.exit("Error: Lambda must have >=0 value if using Ridge or Lasso")
 
-	for degree in range(maxdegree+1):
-		print(f"Degree {degree}/{maxdegree}")
+	#Make sure Lambda is positive when using Ridge/Lasso
+	if method != OLS and lamb < 0:
+		sys.exit("Error: Lambda must have >=0 value if using Ridge or Lasso")
+
+	for degree in range(mindegree, maxdegree+1):
+		#print(f"Degree {degree}/{maxdegree}")
+
 		#set up design matrix for a polynomial of given degree
 		X = np.zeros(( Nx*Ny, (degree+1)*(degree+2)//2))
 		counter = 0
@@ -74,30 +111,19 @@ def Solver(method, lamb = -1, useBootstrap = False, useCrossval = False, useScal
 				X[:,counter:counter+1]  = (x**ii * y**(S-ii)).reshape(-1,1)
 				counter+=1
 
-		#split data into train and test using scikitlearn
-		X_train, X_test, z_train, z_test = train_test_split(X,z, test_size=0.2, random_state=26092022)
 
-		if useScaling:
-			scaler = StandardScaler()
-			scaler.fit(X_train)
-			X_train = scaler.transform(X_train)
-			X_test = scaler.transform(X_test)
-			X_train[:,0:1] = 1
-			X_test[:,0:1] = 1
+		#X = X[:,1:] #remove first column to remove intercept.
+		X_train, X_test, z_train, z_test = train_test_split(X,z, test_size=0.2, random_state=26092022) #Split into train and test
 
 		if useBootstrap:
-			#NEXT TIME: compute average MSE on all models obtained by bootstrap.
-			#-> PLOT : TRAIN_MSE AND TEST_MSE as function of polynomial complexity
-			#-> 		think of the bias - variance tradeoff
 			N_bootstraps = X_train.shape[0]
 			MSE_avg_train = 0
 			MSE_avg_test = 0
 			z_pred = np.empty((X_test.shape[0], N_bootstraps))
-			#bias = np.empty()
-
 			for i in range(N_bootstraps):
+				#When ridge, new mean value so we have to scale here. Dont add 1 column.
 				X_train_b, z_train_b = utils.singleBootstrap(X_train, z_train)
-				beta_opt, z_tilde_train, z_tilde_test = method(X_train_b, X_test, z_train_b)
+				beta_opt, z_tilde_train, z_tilde_test = method(X_train_b, X_test, z_train_b, lamb)
 				MSE_avg_train += utils.MSE(z_train_b , z_tilde_train)
 				MSE_avg_test += utils.MSE(z_test, z_tilde_test)
 				z_pred[:,i:i+1] = z_tilde_test
@@ -108,6 +134,7 @@ def Solver(method, lamb = -1, useBootstrap = False, useCrossval = False, useScal
 			bias[degree] = np.mean((z_test - np.mean(z_pred, axis=1, keepdims=True))**2)
 			variance[degree] = np.mean(np.var(z_pred, axis=1, keepdims=True))
 			error[degree] = np.mean( np.mean( (z_pred-z_test)**2, axis=1, keepdims=True))
+
 
 		elif useCrossval:
 
@@ -121,7 +148,7 @@ def Solver(method, lamb = -1, useBootstrap = False, useCrossval = False, useScal
 				X_train, X_test = X[train_inds], X[test_inds]
 				z_train, z_test = z[train_inds], z[test_inds]
 
-				beta_opt, z_tilde_train, z_tilde_test = method(X_train, X_test, z_train)
+				beta_opt, z_tilde_train, z_tilde_test = method(X_train, X_test, z_train, lamb)
 
 				MSE_avg_train += utils.MSE(z_train , z_tilde_train)
 				MSE_avg_test += utils.MSE(z_test, z_tilde_test)
@@ -133,11 +160,12 @@ def Solver(method, lamb = -1, useBootstrap = False, useCrossval = False, useScal
 
 		else:
 			#find optimal parameters using OLS
-			beta_opt, z_tilde_train, z_tilde_test = method(X_train, X_test, z_train)
-			beta_matrix[0:(degree+1)*(degree+2)//2, degree:degree+1 ] = beta_opt
-
+			beta_opt, z_tilde_train, z_tilde_test = method(X_train, X_test, z_train, lamb)
+			#beta_matrix[1:(degree+1)*(degree+2)//2, degree ] = beta_opt.ravel()
+			#For Lasso get 2 diff values using diff MSE functions.
 			MSE_train = utils.MSE(z_train, z_tilde_train)
 			MSE_test = utils.MSE(z_test, z_tilde_test)
+			#MSE_test = mean_squared_error(z_test, z_tilde_test)
 			R2_train_list[degree]  = utils.R2(z_train, z_tilde_train)
 			R2_test_list[degree]   = utils.R2(z_test, z_tilde_test)
 
@@ -145,109 +173,90 @@ def Solver(method, lamb = -1, useBootstrap = False, useCrossval = False, useScal
 		MSE_train_list[degree]  = MSE_train
 		MSE_test_list[degree]  = MSE_test
 
+	degrees_list = np.arange(maxdegree+1)
 	#Basic plot of MSE scores for train and test.
-	plt.plot(np.arange(maxdegree+1), MSE_train_list, label = "Train")
-	plt.plot(np.arange(maxdegree+1), MSE_test_list, label = "Test")
+
+
+	plt.title(f"{method.__name__} boot: {useBootstrap}, cross: {useCrossval}")
+	plt.plot(degrees_list, MSE_train_list[mindegree:], label = "Train")
+	plt.plot(degrees_list, MSE_test_list[mindegree:], label = "Test")
 	plt.legend()
-	plt.show()
-
-	"""
-	if useBootstrap:
-		plot(bias)
-		plot(variance)
-	"""
-
-	"""
-	# # Plot the surface.
-	# surf = ax.scatter(x, y, z, cmap=cm.coolwarm, linewidth=0, antialiased=False)
-	# # Customize the z axis.
-	# ax.set_zlim(-0.10, 1.40)
-	# ax.zaxis.set_major_locator(LinearLocator(10))
-	# ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
-	# # Add a color bar which maps values to colors.
-	# fig.colorbar(surf, shrink=0.5, aspect=5)
-	# plt.show()
-	#print(beta_matrix)
-	fig, axs = plt.subplots(1,2)
-	degrees_x = np.arange(maxdegree+1)
-	axs[0].plot(degrees_x, MSE_train_list, label="train")
-	axs[0].plot(degrees_x, MSE_test_list, label="test")
-	axs[0].set_ylabel("MSE")
-
-	axs[1].plot(degrees_x, R2_train_list,  label="train")
-	axs[1].plot(degrees_x, R2_test_list,  label="test")
-	axs[1].set_ylabel("R2")
-
-	for ii in range(1):
-		axs[ii].set_xlabel("degree of polynomial")
-		axs[ii].grid(visible=True)
-		axs[ii].legend()
-
-	#plt.show()
-
-	# fig_beta, axs_beta = plt.subplots(1,1)
-
-	# for jj in range(6):
-	# 	axs_beta.plot( np.arange(maxdegree+1), beta_matrix[jj,:], label=f"$beta {jj}$")
-
-	# axs_beta.grid(visible=True)
-	# axs_beta.legend()
+	plt.grid(True)
 
 
-	fig_bvt, axs_bvt = plt.subplots(1,1)
 
-	axs_bvt.plot(np.arange(maxdegree+1), error, label='error')
-	axs_bvt.plot(np.arange(maxdegree+1), bias, label='bias')
-	axs_bvt.plot(np.arange(maxdegree+1), variance, label='variance')
-	axs_bvt.legend()
-	plt.show()
-	"""
+	return degrees_list, MSE_train_list, MSE_test_list, bias, variance
 
-Solver(OLS, useBootstrap=False, useCrossval=False, useScaling = False)
+"""
+#Solver(OLS, useBootstrap=False, useCrossval=False, useScaling = False)
+plt.figure(1)
+Solver(Ridge, useBootstrap=False, useCrossval=False, lamb=0.01, maxdegree = maxdeg)
+plt.figure(2)
+Solver(Ridge_scikit, useBootstrap=False, useCrossval=False, lamb=0.01, maxdegree = maxdeg)
+plt.show()
+"""
+
+
+np.random.seed(3463223)
+fig = plt.figure()
+# Make data.
+Nx_ = 16
+Ny_ = 16
+maxdeg = 12
+MSE_train_list = np.zeros(maxdeg+1)
+MSE_test_list = np.zeros(maxdeg+1)
+R2_train_list = np.zeros(maxdeg+1)
+R2_test_list = np.zeros(maxdeg+1)
+beta_matrix = np.zeros( ( (maxdeg+1)**2, maxdeg+1 ) )
+bias = np.zeros(maxdeg+1)
+variance = np.zeros(maxdeg+1)
+error = np.zeros(maxdeg+1)
+#generate x,y data from uniform distribution
+x_ = np.random.rand(Nx_, 1)
+y_ = np.random.rand(Ny_, 1)
+x_, y_ = np.meshgrid(x_,y_)
+z_ = (utils.FrankeFunction(x_, y_) + 0.1*np.random.randn(Nx_,Ny_)).reshape(-1,1)
+
+"""
+plt.figure(1)
+Solver(x_, y_, z_, Nx_, Ny_, OLS, useBootstrap=False, useCrossval=False, lamb=0.0001, maxdegree = maxdeg)
+plt.show()
+"""
+
+
+"""
+Config for a nice plot OLS bias var:
+np.random.seed(3463223)
+Nx = 16
+Ny = 16
+maxdeg = 12
+#Bias - variance tradeoff plotting:
+degrees_list, MSE_train_list, MSE_test_list, bias, variance = Solver(OLS, useBootstrap=True, useCrossval=False, maxdegree = maxdeg)
+plt.plot(degrees_list, bias, label="Bias")
+plt.plot(degrees_list, variance, label="Variance")
+plt.plot(degrees_list, MSE_test_list, label="Error")
+plt.legend()
+plt.show()
+"""
+
+
+"""
+#Gridsearch
+lambda_vals = np.logspace(-6, 0, 7)
+mindeg = 3
+MSE_2d = np.zeros(shape=(maxdeg+1-mindeg ,len(lambda_vals)))
+
+#Fill array with MSE values. x-axis lambda, y-axis degree
+for i in range(len(lambda_vals)):
+	degrees_list, MSE_train_list, MSE_test_list, _, _ = Solver(Ridge, useBootstrap=False, useCrossval=False, lamb=lambda_vals[i], mindegree = mindeg, maxdegree = maxdeg)
+	for j in range(maxdeg-mindeg+1):
+		MSE_2d[j,i] = MSE_test_list[mindeg+j] #fix indexing cause of length
+
+df= pd.DataFrame(MSE_2d, columns= lambda_vals, index = np.arange(mindeg, maxdeg+1))
+fig = sns.heatmap(df, cbar_kws={'label': 'MSE'})
+fig.set(xlabel="Lambda", ylabel="Degree of complexity")
+plt.show()
+"""
+
 #Solver(OLS, useBootstrap=False, useCrossval=False)
 #Solver(OLS, useBootstrap=True, useCrossval=False)
-
-
-
-"""
-def bootstrap:
-	DONE
-
-def crossval:
-	TO DO
-
-def OLS():
-	DONE
-
-def Lasso
-	TO DO
-
-def Ridge
-	TO DO
-
-
-methods avialble = OLS, Ridge, Lasso
-
-solver(Method):
-	if bootstrap:
-		method(data)
-
-	elif crossval:
-		method(data)
-
-
-plot(Beta values as you increase degree) #just for OLS without resampling
-plot(R2_degrees) #just for OLS without resampling
-
-plot(MSE_degrees) # For all 3
-plot(bias, variance) # All 3 methods, bootstrapped
-
-MAIN FILE:
-
-all variables
-func = asdasdad
-x = 0 -> 1000
-y = 0 ->1000
-main(OLS, bootstrap=True):
-
-"""

@@ -1,0 +1,14 @@
+TODO:
+
+1. Train & test mse with Cross validation & bootstrap with Ridge.
+2. Study bias- variance tradeoff for different lambdas using
+cross & bootstrap Ridge.
+3. Lasso -> Variance trade off with bootstrap.
+MSE analysis with cross valdiation.
+4. Test on real life data set.
+
+FIX bootstrap and cv with lasso.
+
+
+
+FIX: #beta_matrix[1:(degree+1)*(degree+2)//2, degree ] = beta_opt.ravel() in else:
