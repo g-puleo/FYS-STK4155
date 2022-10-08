@@ -80,10 +80,17 @@ def Lasso(X_train, X_test, z_train, lamb):
 
 
 def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval = False, mindegree = 0, maxdegree = 12):
-	#generate target data
-	#z = (utils.FrankeFunction(x, y) + 0.1*np.random.randn(Nx,Ny)).reshape(-1,1)
+	#Set up list to store resultss
+	MSE_train_list = np.zeros(maxdegree+1)
+	MSE_test_list = np.zeros(maxdegree+1)
+	R2_train_list = np.zeros(maxdegree+1)
+	R2_test_list = np.zeros(maxdegree+1)
+	beta_matrix = np.zeros( ( (maxdegree+1)**2, maxdegree+1 ) )
+	bias = np.zeros(maxdegree+1)
+	variance = np.zeros(maxdegree+1)
+	error = np.zeros(maxdegree+1)
 
-	#Print info
+	#Print info when run
 	print(f"Running solver with {method.__name__}. Degrees: {maxdegree}.", end = "")
 	if useBootstrap:
 		print("Using bootstrap ", end ="")
@@ -176,14 +183,13 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 	degrees_list = np.arange(maxdegree+1)
 	#Basic plot of MSE scores for train and test.
 
-
+	"""
 	plt.title(f"{method.__name__} boot: {useBootstrap}, cross: {useCrossval}")
 	plt.plot(degrees_list, MSE_train_list[mindegree:], label = "Train")
 	plt.plot(degrees_list, MSE_test_list[mindegree:], label = "Test")
 	plt.legend()
 	plt.grid(True)
-
-
+	"""
 
 	return degrees_list, MSE_train_list, MSE_test_list, bias, variance
 
@@ -196,26 +202,20 @@ Solver(Ridge_scikit, useBootstrap=False, useCrossval=False, lamb=0.01, maxdegree
 plt.show()
 """
 
-
+"""
 np.random.seed(3463223)
 fig = plt.figure()
 # Make data.
 Nx_ = 16
 Ny_ = 16
 maxdeg = 12
-MSE_train_list = np.zeros(maxdeg+1)
-MSE_test_list = np.zeros(maxdeg+1)
-R2_train_list = np.zeros(maxdeg+1)
-R2_test_list = np.zeros(maxdeg+1)
-beta_matrix = np.zeros( ( (maxdeg+1)**2, maxdeg+1 ) )
-bias = np.zeros(maxdeg+1)
-variance = np.zeros(maxdeg+1)
-error = np.zeros(maxdeg+1)
 #generate x,y data from uniform distribution
 x_ = np.random.rand(Nx_, 1)
 y_ = np.random.rand(Ny_, 1)
 x_, y_ = np.meshgrid(x_,y_)
 z_ = (utils.FrankeFunction(x_, y_) + 0.1*np.random.randn(Nx_,Ny_)).reshape(-1,1)
+"""
+
 
 """
 plt.figure(1)
@@ -242,13 +242,24 @@ plt.show()
 
 """
 #Gridsearch
-lambda_vals = np.logspace(-6, 0, 7)
+np.random.seed(5653456)
+# Make data.
+Nx_ = 16
+Ny_ = 16
+maxdeg = 10
+#generate x,y data from uniform distribution
+x_ = np.random.rand(Nx_, 1)
+y_ = np.random.rand(Ny_, 1)
+x_, y_ = np.meshgrid(x_,y_)
+z_ = (utils.FrankeFunction(x_, y_) + 0.1*np.random.randn(Nx_,Ny_)).reshape(-1,1)
+
+lambda_vals = np.logspace(-6, 0, 14)
 mindeg = 3
 MSE_2d = np.zeros(shape=(maxdeg+1-mindeg ,len(lambda_vals)))
 
 #Fill array with MSE values. x-axis lambda, y-axis degree
 for i in range(len(lambda_vals)):
-	degrees_list, MSE_train_list, MSE_test_list, _, _ = Solver(Ridge, useBootstrap=False, useCrossval=False, lamb=lambda_vals[i], mindegree = mindeg, maxdegree = maxdeg)
+	degrees_list, MSE_train_list, MSE_test_list, _, _ = Solver(x_, y_, z_, Nx_, Ny_, Ridge, useBootstrap=False, useCrossval=False, lamb=lambda_vals[i], mindegree = mindeg, maxdegree = maxdeg)
 	for j in range(maxdeg-mindeg+1):
 		MSE_2d[j,i] = MSE_test_list[mindeg+j] #fix indexing cause of length
 

@@ -7,8 +7,6 @@ cross & bootstrap Ridge.
 MSE analysis with cross valdiation.
 4. Test on real life data set.
 
-FIX bootstrap and cv with lasso.
-
 
 
 FIX: #beta_matrix[1:(degree+1)*(degree+2)//2, degree ] = beta_opt.ravel() in else:
