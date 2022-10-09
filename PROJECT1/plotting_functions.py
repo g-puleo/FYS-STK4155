@@ -25,18 +25,31 @@ plt.rc('ytick', labelsize=13)    # fontsize of the tick labels
 plt.rc('legend', fontsize=13)    # legend fontsize
 plt.rc('font', size=13)          # controls default text sizes
 
-def MSE_plot(degrees_list, MSE_train_list, MSE_test_list, mindegree= 0, title = "MSE", savefig = False, path = "./Plots/MSE"):
+
+def MSE_plot(degrees_list, MSE_train_list, MSE_test_list, mindegree= 0, titles_ = ["MSE"], savefig = False, path = "./Plots/MSE"):
+    fig, axs = plt.subplots(nrows = 1, ncols = len(MSE_train_list), sharey = True, tight_layout=True, figsize=(7*len(MSE_train_list),5))
+    plt.gca().set_ylim(bottom=0)
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
-    plt.figure(figsize=(7,5), tight_layout=True)
-    plt.title(f"{title}")
-    plt.plot(degrees_list, MSE_train_list[mindegree:], label = "Train", color = colorpal[0])
-    plt.plot(degrees_list, MSE_test_list[mindegree:], label = "Test", color = colorpal[1])
-    plt.xlabel("Order of polynomial")
-    plt.ylabel("MSE Error")
+    for i in range(len(MSE_train_list)):
+        #A fix for if length is 1 as u cant call upon axs[0]
+        if len(MSE_train_list) > 1:
+            axs_ = axs[i]
+        else:
+            axs_ = axs
+        axs_.autoscale(enable=True, axis="y", tight=False)
+        axs_.plot(degrees_list, MSE_train_list[i][mindegree:], label = "Train", color = colorpal[0])
+        axs_.plot(degrees_list, MSE_test_list[i][mindegree:], label = "Test", color = colorpal[1])
+        axs_.title.set_text(f"{titles_[i]}")
+        axs_.set_xlabel("Order of polynomial")
+        axs_.legend()
+
+    if len(MSE_train_list) > 1:
+        axs[0].set_ylabel("MSE Error")
+    else:
+        axs.set_ylabel("MSE Error")
     plt.grid(True)
-    plt.legend()
     if savefig:
-        plt.savefig(f"{path}/{title}.png", dpi = 300)
+        plt.savefig(f"{path}/{len(MSE_train_list)}.png", dpi = 300)
     return
 
 def bias_var_plot(degrees_list, bias, variance, MSE_test_list, title = "BiasVar", savefig = False, path = "./Plots/BiasVar"):
