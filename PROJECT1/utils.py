@@ -9,6 +9,8 @@ def MSE(z, ztilde):
     return (1/len(z))*np.sum((z-ztilde)**2)
 
 def R2(z,ztilde):
+    z = z.ravel()
+    ztilde = ztilde.ravel()
     return 1- (MSE(z,ztilde))/np.var(z)
 
 def FrankeFunction(x,y):
