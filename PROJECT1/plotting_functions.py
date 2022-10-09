@@ -11,6 +11,9 @@ import pathlib
 from franke_fit import *
 import utils
 from mpl_toolkits import mplot3d
+import matplotlib
+#matplotlib.rcParams['text.usetex'] = True
+
 colorpal = sns.color_palette("deep")
 
 
@@ -28,6 +31,8 @@ def MSE_plot(degrees_list, MSE_train_list, MSE_test_list, mindegree= 0, title = 
     plt.title(f"{title}")
     plt.plot(degrees_list, MSE_train_list[mindegree:], label = "Train", color = colorpal[0])
     plt.plot(degrees_list, MSE_test_list[mindegree:], label = "Test", color = colorpal[1])
+    plt.xlabel("Order of polynomial")
+    plt.ylabel("MSE Error")
     plt.grid(True)
     plt.legend()
     if savefig:
@@ -41,13 +46,24 @@ def bias_var_plot(degrees_list, bias, variance, MSE_test_list, title = "BiasVar"
     plt.plot(degrees_list, bias, label = "Bias", color = colorpal[0])
     plt.plot(degrees_list, variance, label = "Variance", color = colorpal[1])
     plt.plot(degrees_list, MSE_test_list, label = "MSE Error", color = colorpal[2])
+    plt.xlabel("Order of polynomial")
+    plt.ylabel("Numerical estimate")
     plt.grid(True)
     plt.legend()
     if savefig:
         plt.savefig(f"{path}/{title}.png", dpi = 300)
     return
 
-def betaval_plot():
+def betaval_plot(degrees_list, beta_mat, nr_ofbeta, maxdeg, title = "Betavalues", savefig = False, path = "./Plots/Betamatrix"):
+    pathlib.Path(path).mkdir(parents=True, exist_ok=True)
+    for i in range(nr_ofbeta):
+    	plt.plot(degrees_list[:maxdeg], beta_mat[i,:maxdeg], label=f"$\\beta_{i}$", color = colorpal[i])
+    plt.grid(True)
+    plt.xlabel("Order of polynomial")
+    plt.ylabel("Optimal paramater")
+    plt.legend()
+    if savefig:
+        plt.savefig(f"{path}/{title}.png", dpi = 300)
     return
 
 def gridsearch_plot(MSE_2d_values, lambda_vals, mindeg, maxdeg, title = "gridsearch", savefig = False, path = "./Plots/Gridsearch"):
@@ -55,7 +71,7 @@ def gridsearch_plot(MSE_2d_values, lambda_vals, mindeg, maxdeg, title = "gridsea
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
     df= pd.DataFrame(MSE_2d_values, columns= lambda_vals, index = np.arange(mindeg, maxdeg+1))
     fig = sns.heatmap(df, cbar_kws={'label': 'MSE'})
-    fig.set(xlabel="Lambda", ylabel="Degree of complexity")
+    fig.set(xlabel="Lambda", ylabel="Order of polynomial")
     if savefig:
         plt.savefig(f"{path}/{title}.png", dpi = 300)
     return
