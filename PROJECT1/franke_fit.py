@@ -53,7 +53,7 @@ def Ridge(X_train, X_test, z_train, lamb):
 	z_tilde_test  = X_test_ @ beta_opt + z_mean_train
 	#z_tilde_train = np.ravel(z_tilde_train)
 	#z_tilde_test= np.ravel(z_tilde_test)
-
+	beta_opt = np.insert(beta_opt, 0, z_mean_train)
 	return beta_opt, z_tilde_train, z_tilde_test
 
 def Ridge_scikit(X_train, X_test, z_train, lamb):
@@ -85,10 +85,10 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 	MSE_test_list = np.zeros(maxdegree+1)
 	R2_train_list = np.zeros(maxdegree+1)
 	R2_test_list = np.zeros(maxdegree+1)
-	beta_matrix = np.zeros( ( (maxdegree+1)**2, maxdegree+1 ) )
 	bias = np.zeros(maxdegree+1)
 	variance = np.zeros(maxdegree+1)
 	error = np.zeros(maxdegree+1)
+	beta_matrix = np.zeros( ( (maxdegree+1)*(maxdegree+2)//2, maxdegree+1 ) )
 
 	#Print info when run
 	print(f"Running solver with {method.__name__}. Degrees: {maxdegree}.", end = "")
@@ -168,7 +168,8 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 		else:
 			#find optimal parameters using OLS
 			beta_opt, z_tilde_train, z_tilde_test = method(X_train, X_test, z_train, lamb)
-			#beta_matrix[1:(degree+1)*(degree+2)//2, degree ] = beta_opt.ravel()
+			if mindegree == 0:
+				beta_matrix[0:(degree+1)*(degree+2)//2, degree ] = beta_opt.ravel()
 			#For Lasso get 2 diff values using diff MSE functions.
 			MSE_train = utils.MSE(z_train, z_tilde_train)
 			MSE_test = utils.MSE(z_test, z_tilde_test)
@@ -191,7 +192,7 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 	plt.grid(True)
 	"""
 
-	return degrees_list, MSE_train_list, MSE_test_list, bias, variance
+	return degrees_list, MSE_train_list, MSE_test_list, bias, variance, beta_matrix, R2_train_list, R2_test_list
 
 """
 #Solver(OLS, useBootstrap=False, useCrossval=False, useScaling = False)
@@ -214,12 +215,20 @@ x_ = np.random.rand(Nx_, 1)
 y_ = np.random.rand(Ny_, 1)
 x_, y_ = np.meshgrid(x_,y_)
 z_ = (utils.FrankeFunction(x_, y_) + 0.1*np.random.randn(Nx_,Ny_)).reshape(-1,1)
+
+beta_matrix = np.zeros( ( (maxdeg+1)*(maxdeg+2)//2, maxdeg+1 ) )
+
+degrees_list, MSE_train_list, MSE_test_list, bias, variance = Solver(x_, y_, z_, Nx_, Ny_, OLS, useBootstrap=False, useCrossval=False, lamb=0.0001, maxdegree = maxdeg)
+for i in range(6):
+	plt.plot(degrees_list, beta_matrix[i,:], label=f"Beta{i}")
+plt.legend()
+plt.show()
 """
 
 
 """
 plt.figure(1)
-Solver(x_, y_, z_, Nx_, Ny_, OLS, useBootstrap=False, useCrossval=False, lamb=0.0001, maxdegree = maxdeg)
+degrees_list, MSE_train_list, MSE_test_list, bias, variance = Solver(x_, y_, z_, Nx_, Ny_, OLS, useBootstrap=False, useCrossval=False, lamb=0.0001, maxdegree = maxdeg)
 plt.show()
 """
 
