@@ -192,7 +192,7 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 	plt.grid(True)
 	"""
 
-	return degrees_list, MSE_train_list, MSE_test_list, bias, variance, beta_matrix
+	return degrees_list, MSE_train_list, MSE_test_list, bias, variance, beta_matrix, R2_train_list, R2_test_list
 
 """
 #Solver(OLS, useBootstrap=False, useCrossval=False, useScaling = False)
