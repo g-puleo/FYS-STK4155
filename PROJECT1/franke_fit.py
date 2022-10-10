@@ -68,6 +68,11 @@ def Ridge_scikit(X_train, X_test, z_train, lamb):
 
 def Lasso(X_train, X_test, z_train, lamb):
 	X_train_, X_test_, z_mean_train = scale(X_train, X_test, z_train)
+	#shift the prediction and remove first column of design matrix
+	X_train_ = X_train_[:, 1:]
+	X_test_ = X_test_[:, 1:]
+	z_train_ = z_train - z_mean_train
+
 	clf = linear_model.Lasso(alpha = lamb, fit_intercept=True)
 	clf.fit(X_train_, z_train)
 	z_tilde_train  = clf.predict(X_train_) #questionable, u get back original z_train?
