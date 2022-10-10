@@ -87,14 +87,14 @@ def Lasso(X_train, X_test, z_train, lamb):
 def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval = False, mindegree = 0, maxdegree = 12):
 	#Set up list to store resultss
 	z_pred_list = []
-	MSE_train_list = np.zeros(maxdegree+1)
-	MSE_test_list = np.zeros(maxdegree+1)
-	R2_train_list = np.zeros(maxdegree+1)
-	R2_test_list = np.zeros(maxdegree+1)
-	bias = np.zeros(maxdegree+1)
-	variance = np.zeros(maxdegree+1)
-	error = np.zeros(maxdegree+1)
-	beta_matrix = np.zeros( ( (maxdegree+1)*(maxdegree+2)//2, maxdegree+1 ) )
+	MSE_train_list = np.zeros(maxdegree-mindegree+1)
+	MSE_test_list = np.zeros(maxdegree-mindegree+1)
+	R2_train_list = np.zeros(maxdegree-mindegree+1)
+	R2_test_list = np.zeros(maxdegree-mindegree+1)
+	bias = np.zeros(maxdegree-mindegree+1)
+	variance = np.zeros(maxdegree-mindegree+1)
+	error = np.zeros(maxdegree-mindegree+1)
+	beta_matrix = np.zeros( ( (maxdegree+1)*(maxdegree+2)//2, maxdegree-mindegree+1 ) )
 
 	#Print info when run
 	print(f"Running solver with {method.__name__}. Degrees: {maxdegree}.", end = "")
@@ -136,7 +136,12 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 			for i in range(N_bootstraps):
 				#When ridge, new mean value so we have to scale here. Dont add 1 column.
 				X_train_b, z_train_b = utils.singleBootstrap(X_train, z_train)
-				beta_opt, z_tilde_train, z_tilde_test = method(X_train_b, X_test, z_train_b, lamb)
+				if degree == 0:
+					# if deg=0 just have the intercept = mean(z)
+					z_mean_train = np.mean(z_train_b)
+					beta_opt, z_tilde_train, z_tilde_test = z_mean_train, z_mean_train, z_mean_train
+				else:
+					beta_opt, z_tilde_train, z_tilde_test = method(X_train_b, X_test, z_train_b, lamb)
 				MSE_avg_train += utils.MSE(z_train_b , z_tilde_train)
 				MSE_avg_test += utils.MSE(z_test, z_tilde_test)
 				z_pred[:,i:i+1] = z_tilde_test
@@ -144,9 +149,9 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 			MSE_test=MSE_avg_test/N_bootstraps
 			MSE_train=MSE_avg_train/N_bootstraps
 
-			bias[degree] = np.mean((z_test - np.mean(z_pred, axis=1, keepdims=True))**2)
-			variance[degree] = np.mean(np.var(z_pred, axis=1, keepdims=True))
-			error[degree] = np.mean( np.mean( (z_pred-z_test)**2, axis=1, keepdims=True))
+			bias[degree-mindegree] = np.mean((z_test - np.mean(z_pred, axis=1, keepdims=True))**2)
+			variance[degree-mindegree] = np.mean(np.var(z_pred, axis=1, keepdims=True))
+			error[degree-mindegree] = np.mean( np.mean( (z_pred-z_test)**2, axis=1, keepdims=True))
 
 
 		elif useCrossval:
@@ -160,9 +165,13 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 			for train_inds, test_inds in kfold.split(X):
 				X_train, X_test = X[train_inds], X[test_inds]
 				z_train, z_test = z[train_inds], z[test_inds]
-
-				beta_opt, z_tilde_train, z_tilde_test = method(X_train, X_test, z_train, lamb)
-
+				if degree==0:
+					# if deg=0 just have the intercept = mean(z)
+					z_mean_train = np.array([[np.mean(z_train)]])
+					beta_opt, z_tilde_train, z_tilde_test = z_mean_train.reshape(-1), z_mean_train, z_mean_train
+				else:
+					beta_opt, z_tilde_train, z_tilde_test = method(X_train, X_test, z_train, lamb)
+				
 				MSE_avg_train += utils.MSE(z_train , z_tilde_train)
 				MSE_avg_test += utils.MSE(z_test, z_tilde_test)
 
@@ -173,19 +182,24 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 
 		else:
 			#find optimal parameters using OLS
-			beta_opt, z_tilde_train, z_tilde_test = method(X_train, X_test, z_train, lamb)
+			if degree==0:
+				# if deg=0 just have the intercept = mean(z)
+				z_mean_train = np.mean(z_train)
+				beta_opt, z_tilde_train, z_tilde_test = z_mean_train, z_mean_train, z_mean_train
+			else:
+				beta_opt, z_tilde_train, z_tilde_test = method(X_train, X_test, z_train, lamb)
 			if mindegree == 0:
 				beta_matrix[0:(degree+1)*(degree+2)//2, degree ] = beta_opt.ravel()
 			#For Lasso get 2 diff values using diff MSE functions.
 			MSE_train = utils.MSE(z_train, z_tilde_train)
 			MSE_test = utils.MSE(z_test, z_tilde_test)
 			#MSE_test = mean_squared_error(z_test, z_tilde_test)
-			R2_train_list[degree]  = utils.R2(z_train, z_tilde_train)
-			R2_test_list[degree]   = utils.R2(z_test, z_tilde_test)
+			R2_train_list[degree-mindegree]  = utils.R2(z_train, z_tilde_train)
+			R2_test_list[degree-mindegree]   = utils.R2(z_test, z_tilde_test)
 
 		#evaluate MSE
-		MSE_train_list[degree]  = MSE_train
-		MSE_test_list[degree]  = MSE_test
+		MSE_train_list[degree-mindegree]  = MSE_train
+		MSE_test_list[degree-mindegree]  = MSE_test
 		# add prediction to list (for plotting purposes)
 		X_scaled,_,_ = scale(X,X,z) # want the scaled data
 		if degree == 0:
@@ -194,7 +208,7 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 			z_pred_ = X_scaled[:,1:]@beta_opt[1:] + beta_opt[0]
 		z_pred_list.append(z_pred_.reshape(Ny,Nx))
 
-	degrees_list = np.arange(maxdegree+1)
+	degrees_list = np.arange(mindegree, maxdegree+1)
 	#Basic plot of MSE scores for train and test.
 
 	"""
