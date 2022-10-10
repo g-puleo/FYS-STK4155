@@ -86,6 +86,7 @@ def Lasso(X_train, X_test, z_train, lamb):
 
 def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval = False, mindegree = 0, maxdegree = 12):
 	#Set up list to store resultss
+	z_pred_list = []
 	MSE_train_list = np.zeros(maxdegree+1)
 	MSE_test_list = np.zeros(maxdegree+1)
 	R2_train_list = np.zeros(maxdegree+1)
@@ -112,7 +113,7 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 		sys.exit("Error: Lambda must have >=0 value if using Ridge or Lasso")
 
 	for degree in range(mindegree, maxdegree+1):
-		#print(f"Degree {degree}/{maxdegree}")
+		print(f"Degree {degree}/{maxdegree}")
 
 		#set up design matrix for a polynomial of given degree
 		X = np.zeros(( Nx*Ny, (degree+1)*(degree+2)//2))
@@ -185,6 +186,13 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 		#evaluate MSE
 		MSE_train_list[degree]  = MSE_train
 		MSE_test_list[degree]  = MSE_test
+		# add prediction to list (for plotting purposes)
+		X_scaled,_,_ = scale(X,X,z) # want the scaled data
+		if degree == 0:
+			z_pred_ = beta_opt[0]*np.ones(len(z))
+		else:
+			z_pred_ = X_scaled[:,1:]@beta_opt[1:] + beta_opt[0]
+		z_pred_list.append(z_pred_.reshape(Ny,Nx))
 
 	degrees_list = np.arange(maxdegree+1)
 	#Basic plot of MSE scores for train and test.
@@ -197,7 +205,7 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 	plt.grid(True)
 	"""
 
-	return degrees_list, MSE_train_list, MSE_test_list, bias, variance, beta_matrix, R2_train_list, R2_test_list
+	return z_pred_list, degrees_list, MSE_train_list, MSE_test_list, bias, variance, beta_matrix, R2_train_list, R2_test_list
 
 """
 #Solver(OLS, useBootstrap=False, useCrossval=False, useScaling = False)
