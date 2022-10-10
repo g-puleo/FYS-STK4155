@@ -74,11 +74,12 @@ def Lasso(X_train, X_test, z_train, lamb):
 	z_train_ = z_train - z_mean_train
 
 	clf = linear_model.Lasso(alpha = lamb, fit_intercept=True)
-	clf.fit(X_train_, z_train)
+	clf.fit(X_train_, z_train_)
 	z_tilde_train  = clf.predict(X_train_) #questionable, u get back original z_train?
 	#z_tilde_train = np.reshape(z_tilde_train.shape[0],1)
 	z_tilde_test = clf.predict(X_test_).reshape(-1,1)
 	beta_opt = clf.coef_
+	beta_opt = np.insert(beta_opt, 0, z_mean_train)
 	#print(beta_opt)
 	#print(z_tilde_test)
 	return beta_opt, z_tilde_train, z_tilde_test
