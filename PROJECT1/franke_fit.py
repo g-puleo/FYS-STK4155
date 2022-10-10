@@ -73,12 +73,14 @@ def Lasso(X_train, X_test, z_train, lamb):
 	X_test_ = X_test_[:, 1:]
 	z_train_ = z_train - z_mean_train
 
-	clf = linear_model.Lasso(alpha = lamb, fit_intercept=True)
+	clf = linear_model.Lasso(alpha = lamb, fit_intercept=False)
 	clf.fit(X_train_, z_train_)
 	z_tilde_train  = clf.predict(X_train_) + z_mean_train #questionable, u get back original z_train?
 	#z_tilde_train = np.reshape(z_tilde_train.shape[0],1)
-	z_tilde_test = clf.predict(X_test_).reshape(-1,1) + z_mean_train
+	z_tilde_test = clf.predict(X_test_) + z_mean_train
 	beta_opt = clf.coef_
+	#z_tilde_train = X_train_@beta_opt + z_mean_train
+	#z_tilde_test = X_test_@beta_opt + z_mean_train
 	beta_opt = np.insert(beta_opt, 0, z_mean_train)
 	#print(beta_opt)
 	#print(z_tilde_test)
@@ -137,9 +139,9 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 			for i in range(N_bootstraps):
 				#When ridge, new mean value so we have to scale here. Dont add 1 column.
 				X_train_b, z_train_b = utils.singleBootstrap(X_train, z_train)
-				if degree == 0:
+				if degree==0:
 					# if deg=0 just have the intercept = mean(z)
-					z_mean_train = np.mean(z_train_b)
+					z_mean_train = np.array([[np.mean(z_train)]])
 					beta_opt, z_tilde_train, z_tilde_test = z_mean_train, z_mean_train, z_mean_train
 				else:
 					beta_opt, z_tilde_train, z_tilde_test = method(X_train_b, X_test, z_train_b, lamb)
@@ -185,7 +187,7 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 			#find optimal parameters using OLS
 			if degree==0:
 				# if deg=0 just have the intercept = mean(z)
-				z_mean_train = np.mean(z_train)
+				z_mean_train = np.array([[np.mean(z_train)]])
 				beta_opt, z_tilde_train, z_tilde_test = z_mean_train, z_mean_train, z_mean_train
 			else:
 				beta_opt, z_tilde_train, z_tilde_test = method(X_train, X_test, z_train, lamb)
