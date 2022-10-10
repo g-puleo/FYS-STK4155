@@ -22,6 +22,34 @@ def generate_reults():
     x_, y_ = np.meshgrid(x__,y__)
     z_ = (utils.FrankeFunction(x_, y_) + 0.1*np.random.randn(Nx_,Ny_)).reshape(-1,1)
 
+    """
+    #1 MSE AND R2 SCORES AS FUNCTION OF THE POLYNOMIAL DEGREE, OLS
+    list_train = []
+    test = []
+    degrees_list, MSE_train_list, MSE_test_list, _, _, _, R2_train_list, R2_test_list \
+    = Solver(x_, y_, z_, Nx_, Ny_, OLS, lamb = 0, useBootstrap=False, useCrossval=False, maxdegree = maxdeg)
+    plotfnc.MSE_R2_plot(degrees_list, MSE_train_list, MSE_test_list, R2_train_list, R2_test_list, savefig = True)
+    """
+
+    """
+    # (2) BETA PARAMETERS, AS FUNCTION OF POLYDEG, OLS
+    #Betamatrix plot
+    deg_toplot = 6
+    nr_of_betas = 6
+    degrees_list, MSE_train_list, MSE_test_list, bias, variance, beta_matrix, _, _ = Solver(x_, y_, z_, Nx_, Ny_, OLS, useBootstrap=False, useCrossval=False, lamb=0.0001, maxdegree = maxdeg)
+    plotfnc.betaval_plot(degrees_list, beta_matrix, nr_of_betas, maxdeg = deg_toplot, title = f"Betavalues_{nr_of_betas}", savefig = True)
+    plt.show()
+    """
+
+    #(3) Bias-variance tradeoff, AS FUNCTION OF POLYDEG USING ONLY BOOTSTRAP, and only OLS
+    maxdeg_ = 10
+    degrees_list, MSE_train_list, MSE_test_list, bias, variance, beta_matrix, R2_train_list, R2_test_list \
+    = Solver(x_, y_, z_, Nx_, Ny_, OLS, lamb = 0, useBootstrap=True, useCrossval=False, maxdegree = maxdeg_)
+    plotfnc.bias_var_plot(degrees_list, bias, variance, MSE_test_list,  savefig = True)
+    plt.show()
+
+
+    """
     #methods = [OLS]
     MSE_list_train = []
     MSE_list_test = []
@@ -36,6 +64,7 @@ def generate_reults():
 
     plotfnc.MSE_plot(degrees_list, MSE_list_train, MSE_list_test, titles_ = titles, savefig = True)
     plt.show()
+    """
 
     """
     #Bias var plot example
@@ -44,14 +73,7 @@ def generate_reults():
     plt.show()
     """
 
-    """
-    #Betamatrix plot
-    deg_toplot = 6
-    nr_of_betas = 6
-    degrees_list, MSE_train_list, MSE_test_list, bias, variance, beta_matrix, _, _ = Solver(x_, y_, z_, Nx_, Ny_, OLS, useBootstrap=False, useCrossval=False, lamb=0.0001, maxdegree = maxdeg)
-    plotfnc.betaval_plot(degrees_list, beta_matrix, nr_of_betas, maxdeg = deg_toplot, title = f"Betavalues_{nr_of_betas}", savefig = True)
-    plt.show()
-    """
+
 
     #Attempt to show frankie func which dont look too good
     #plotfnc.function_plot(x_, y_, z__)

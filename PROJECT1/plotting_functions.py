@@ -52,6 +52,28 @@ def MSE_plot(degrees_list, MSE_train_list, MSE_test_list, mindegree= 0, titles_ 
         plt.savefig(f"{path}/{len(MSE_train_list)}.png", dpi = 300)
     return
 
+
+def MSE_R2_plot(degrees_list, MSE_train_list, MSE_test_list, R2_train_list, R2_test_list, savefig = False, path = "./Plots/MSER2"):
+    fig, axs = plt.subplots(nrows = 1, ncols = 2, sharey = False, tight_layout=True, figsize=(7*2,5))
+    plt.gca().set_ylim(bottom=0)
+    pathlib.Path(path).mkdir(parents=True, exist_ok=True)
+    #axs.autoscale(enable=True, axis="y", tight=False)
+    axs[0].plot(degrees_list, MSE_train_list, label = "Train", color = colorpal[0])
+    axs[0].plot(degrees_list, MSE_test_list, label = "Test", color = colorpal[1])
+    axs[1].plot(degrees_list, R2_train_list, label = "Train", color = colorpal[0])
+    axs[1].plot(degrees_list, R2_test_list, label = "Test", color = colorpal[1])
+    axs[0].title.set_text(f"MSE")
+    axs[1].title.set_text(f"R2")
+    for i in range(2):
+        axs[i].set_xlabel("Order of polynomial")
+        axs[i].legend()
+    axs[0].set_ylabel("MSE Error")
+    axs[1].set_ylabel("R2 Error")
+    plt.grid(True)
+    if savefig:
+        plt.savefig(f"{path}/MSER2_OLS.png", dpi = 300)
+    return
+
 def bias_var_plot(degrees_list, bias, variance, MSE_test_list, title = "BiasVar", savefig = False, path = "./Plots/BiasVar"):
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
     plt.figure(figsize=(7,5), tight_layout=True)
@@ -68,6 +90,7 @@ def bias_var_plot(degrees_list, bias, variance, MSE_test_list, title = "BiasVar"
     return
 
 def betaval_plot(degrees_list, beta_mat, nr_ofbeta, maxdeg, title = "Betavalues", savefig = False, path = "./Plots/Betamatrix"):
+    plt.figure(figsize=(7,5), tight_layout=True)
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
     for i in range(nr_ofbeta):
     	plt.plot(degrees_list[:maxdeg], beta_mat[i,:maxdeg], label=f"$\\beta_{i}$", color = colorpal[i])
