@@ -43,7 +43,7 @@ def generate_reults():
 
     #(3) Bias-variance tradeoff, AS FUNCTION OF POLYDEG USING ONLY BOOTSTRAP, and only OLS
     maxdeg_ = 10
-    degrees_list, MSE_train_list, MSE_test_list, bias, variance, beta_matrix, R2_train_list, R2_test_list \
+    degrees_list, MSE_train_list, MSE_test_list, bias, variance, beta_matrix, R2_train_list, (utils.FrankeFunction(x, y)R2_test_list \
     = Solver(x_, y_, z_, Nx_, Ny_, OLS, lamb = 0, useBootstrap=True, useCrossval=False, maxdegree = maxdeg_)
     plotfnc.bias_var_plot(degrees_list, bias, variance, MSE_test_list,  savefig = True)
     plt.show()
