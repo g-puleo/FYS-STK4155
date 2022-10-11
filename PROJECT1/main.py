@@ -1,6 +1,6 @@
 
 
-import sys
+import sys, os
 sys.path.insert(1, './src') #Search the src folder for the modules
 import plotting_functions as plotfnc
 from franke_fit import *
@@ -13,7 +13,6 @@ def generate_reults(showfigs = False):
     methods = [OLS, Ridge, Lasso]
     np.random.seed(3463223)
     np.random.seed(133)
-    #np.random.seed(12)
     # Make data.
     Nx_ = 16
     Ny_ = 16
@@ -25,6 +24,7 @@ def generate_reults(showfigs = False):
     z_ = (utils.FrankeFunction(x_, y_) + 0.1*np.random.randn(Nx_,Ny_)).reshape(-1,1)
 
     #1 MSE AND R2 SCORES AS FUNCTION OF THE POLYNOMIAL DEGREE, OLS
+    maxdeg = 11
     print("Plotting MSE and R2 score for OLS.")
     list_train = []
     test = []
@@ -50,7 +50,7 @@ def generate_reults(showfigs = False):
     #(4)COMPARISON BETWEEN ESTIMATES OF MSE IN CROSSVAL AND BOOTSTRAP, OLS. 2 plots to reuse plotting func
     #Bootstrap value goes a bit crazy for higher complexity which used to a problem which i thought was fixed
     print("Plotting MSE for OLS w/boot and w/crossval.")
-    maxdeg = 15
+    maxdeg = 11
     MSE_list_train = []
     MSE_list_test = []
     titles = ["Bootstrap", "Cross-validation"]
@@ -80,7 +80,7 @@ def generate_reults(showfigs = False):
         Solver(x_, y_, z_, Nx_, Ny_, Ridge, useBootstrap=False, useCrossval=True, lamb=lambda_vals[i], mindegree = mindeg, maxdegree = maxdeg)
         for j in range(maxdeg-mindeg+1):
             MSE_2d[j,i] = MSE_test_list[j] #fix indexing cause of length
-    plotfnc.gridsearch_plot(MSE_2d, lambda_vals, mindeg, maxdeg, savename="Ridge_crossval_grid", savefig = True)
+    plotfnc.gridsearch_plot(MSE_2d, lambda_vals, mindeg, maxdeg, title = "Ridge", savename="Ridge_crossval_grid", savefig = True)
 
     maxdeg = 20
     lambda_vals = np.logspace(-7, -3, 5)
@@ -92,7 +92,7 @@ def generate_reults(showfigs = False):
         Solver(x_, y_, z_, Nx_, Ny_, method, useBootstrap=False, useCrossval=True, lamb=lambda_vals[i], mindegree = mindeg, maxdegree = maxdeg)
         for j in range(maxdeg-mindeg+1):
             MSE_2d[j,i] = MSE_test_list[j] #fix indexing cause of length
-    plotfnc.gridsearch_plot(MSE_2d, lambda_vals, mindeg, maxdeg, savename="Lasso_crossval_grid", savefig = True)
+    plotfnc.gridsearch_plot(MSE_2d, lambda_vals, mindeg, maxdeg, title = "Lasso", savename="Lasso_crossval_grid", savefig = True)
 
 
     #(6) No resampling gridsearch with ridge and lasso. MSE score
@@ -108,7 +108,7 @@ def generate_reults(showfigs = False):
         Solver(x_, y_, z_, Nx_, Ny_, Ridge, useBootstrap=False, useCrossval=False, lamb=lambda_vals[i], mindegree = mindeg, maxdegree = maxdeg)
         for j in range(maxdeg-mindeg+1):
             MSE_2d[j,i] = MSE_test_list[j] #fix indexing cause of length
-    plotfnc.gridsearch_plot(MSE_2d, lambda_vals, mindeg, maxdeg, savename="Ridge_grid", savefig = True)
+    plotfnc.gridsearch_plot(MSE_2d, lambda_vals, mindeg, maxdeg, title = "Ridge", savename="Ridge_grid", savefig = True)
 
     maxdeg = 14
     lambda_vals = np.logspace(-7, -3, 5)
@@ -120,29 +120,30 @@ def generate_reults(showfigs = False):
         Solver(x_, y_, z_, Nx_, Ny_, method, useBootstrap=False, useCrossval=False, lamb=lambda_vals[i], mindegree = mindeg, maxdegree = maxdeg)
         for j in range(maxdeg-mindeg+1):
             MSE_2d[j,i] = MSE_test_list[j] #fix indexing cause of length
-    plotfnc.gridsearch_plot(MSE_2d, lambda_vals, mindeg, maxdeg, savename="Lasso_grid", savefig = True)
+    plotfnc.gridsearch_plot(MSE_2d, lambda_vals, mindeg, maxdeg, title = "Lasso", savename="Lasso_grid", savefig = True)
 
 
-    
+
     #7 Bias variance tradeoff. Using ridge and lasso, both with bootstrap.
-    lambda_vals = np.array([1e-9, 1e-1, 50])
+    print("Plotting bias variance with ridge and lasso using bootstrap.")
+    lambda_vals = np.array([1e-5, 1e-1,  50 ])
     lists = [ [], [] ]
     mindeg = 1
     maxdeg = 8
     i = 0
 
     for lambda_ in lambda_vals:
-        for jj, method in enumerate([ff.Ridge, ff.Lasso]):
-            #print(method)
-            #print(type(method))
+        for jj, method in enumerate([Ridge, Lasso]):
             degrees_list, MSE_train_list, MSE_test_list, bias, variance, _, _, _, _ = \
-            ff.Solver(x_, y_, z_, Nx_, Ny_, method, useBootstrap=True, useCrossval=False, lamb=lambda_, mindegree = mindeg, maxdegree = maxdeg)
+            Solver(x_, y_, z_, Nx_, Ny_, method, useBootstrap=True, useCrossval=False, lamb=lambda_, mindegree = mindeg, maxdegree = maxdeg)
             lists[jj].append([MSE_test_list, bias, variance])
 
 
-    plotfnc.bias_var_lambdas(degrees_list, lists, lambda_vals, title="BiasVarLambda")
-    plt.show()
-    
+    plotfnc.bias_var_lambdas(degrees_list, lists, lambda_vals, savename="biasvarname", savefig=True)
+
+    print("Finished all results for FrankeFunction. ")
+    col = os.get_terminal_size()[0]
+    print("-"*col + "\n")
     if showfigs:
         plt.show()
 
@@ -160,15 +161,16 @@ def get_bool(var):
 
 def main():
     #Run to generate all the plots using the frankie function.
-    generate_reults(showfigs = False)
-    """
+    #generate_reults(showfigs = False)
+
     bool_gen = input("Do you want to generate all figures for FrankeFunction? (y/n)")
     bool_gen = get_bool(bool_gen)
     if bool_gen:
         showfigs_ = input("Do you want to show all figures? (y/n)")
         bool_show = get_bool(showfigs_)
+        print("")
         generate_reults(showfigs = bool_show)
-    """
+
 
 
 

@@ -136,6 +136,7 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 
 		if useBootstrap:
 			N_bootstraps = X_train.shape[0]
+			#N_bootstraps = 20
 			MSE_avg_train = 0
 			MSE_avg_test = 0
 			z_pred = np.empty((X_test.shape[0], N_bootstraps))
@@ -150,7 +151,7 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 					beta_opt, z_tilde_train, z_tilde_test = method(X_train_b, X_test, z_train_b, lamb)
 				MSE_avg_train += utils.MSE(z_train_b , z_tilde_train)
 				MSE_avg_test += utils.MSE(z_test, z_tilde_test)
-				z_pred[:,i:i+1] = z_tilde_test #had to add this for it to work when doing multiple lambdas
+				z_pred[:,i:i+1] = z_tilde_test.reshape(-1,1) #had to add this for it to work when doing multiple lambdas
 
 			MSE_test=MSE_avg_test/N_bootstraps
 			MSE_train=MSE_avg_train/N_bootstraps
