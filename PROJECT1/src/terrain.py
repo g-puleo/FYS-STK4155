@@ -2,12 +2,8 @@
 FYS-STK4155
 Project 1
 Analysing terrain data
-"""
 
-"""
--input: filename, pixel location, selection_size, method
--output: optimal fit params (degree), plotted optimal fit, MSE
-gridsearch_plot(MSE_2d_values, lambda_vals, mindeg, maxdeg, title = "gridsearch", savefig = False, path = "./Plots/Gridsearch"):
+
 
 """
 from select import select
@@ -18,11 +14,15 @@ from imageio import imread
 import plotting_functions as plotfnc
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
-
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
+import pathlib
 
-saveFigs = False
+saveFigs = True
+path = "./Plots/Terrain"
+pathlib.Path(path).mkdir(parents=True, exist_ok=True)
+
+filename = 'SRTM_data_Norway_2.tif'
 
 def prepare_grid(filename, location, selection_size, ravel=True):
     ''' Reads .tif file with altitude data.
@@ -42,67 +42,12 @@ def prepare_grid(filename, location, selection_size, ravel=True):
     x, y = np.meshgrid(x,y)
 
     h = imread(filename)[ymin:ymax, xmin:xmax]
-    # # plot terrain data
-    # fig1 = plt.figure()
-    # plt.imshow(h,cmap="gray")
-    # #plt.savefig(f"terrain plot {filename}.pdf")
-    # plt.colorbar()
 
     if ravel:
         h = h.reshape(-1,1) # want array of shape (N,1)
         
     return x, y, h
-"""
-def terrain_func(method):
-    
-    
-    if method==OLS:
-        lambda_vals = [0.]
-    else:
-        lambda_vals = [1e-7]# np.logspace(-8,0,1)
 
-    mindeg = 0
-    maxdeg = 26
-
-    useCrossval = False
-    MSE_2d_values = np.zeros((maxdeg-mindeg + 1, len(lambda_vals)))
-
-    for lamb_idx, lamb in enumerate(lambda_vals):
-        degrees_list, MSE_train_list, MSE_test_list, bias, variance, _, _, _, z_pred_list = \
-            Solver(x, y, terrain, Nx=selection_size, Ny=selection_size, method=method, \
-            lamb = lamb, useBootstrap = useCrossval, useCrossval = useCrossval, mindegree=mindeg,maxdegree=maxdeg)
-        MSE_2d_values[:,lamb_idx] = MSE_test_list
-
-    #fig = plotfnc.gridsearch_plot(MSE_2d_values, lambda_vals, mindeg, maxdeg, title = "gridsearch", savefig = False, path = "./Plots/Gridsearch")
-    #from matplotlib.colors import LogNorm, Normalize
-    #plt.figure(figsize=(7,5), tight_layout=True)
-    #fig = plt.figure()
-    #axes = plt.gca()
-    #axes.imshow(MSE_2d_values, cmap="autumn", norm=LogNorm())
-    #axes.set_xlabel("Lambda"); axes.set_ylabel("Order of polynomial")
-    
-
-    optimal_model_idx = np.argmin(MSE_2d_values)
-    optimal_degree = optimal_model_idx//len(lambda_vals) + mindeg
-    optimal_lambda_idx = optimal_model_idx%len(lambda_vals)
-    optimal_lambda = lambda_vals[optimal_lambda_idx]
-    print("Optimal polynomial has degree ", optimal_degree)
-    if method!=OLS:
-        print("with optimal lambda = ", optimal_lambda)
-    plt.figure()
-    plt.imshow(z_pred_list[optimal_degree-mindeg],cmap="gray")
-    plt.colorbar()
-    fig, ax = plt.subplots()
-    ax.plot(degrees_list, MSE_2d_values[:,0], label="MSE_test")
-    ax.plot(degrees_list, MSE_train_list, label="MSE_train")
-    plt.legend()
-    for degree in range(mindeg,maxdeg+1):
-        cool_function = lambda lamb: Solver(x,y,terrain,selection_size,selection_size,method,lamb,useCrossval=True,mindegree=degree,maxdegree=degree)
-
-    return
-"""
-##probably will be convenient to move this function to another file (plotting_functions.py)
-filename = 'SRTM_data_Norway_2.tif'
 
 def plot_raw_terrain(saveFigs=saveFigs):
 
@@ -132,31 +77,31 @@ def plot_raw_terrain(saveFigs=saveFigs):
                 axs[ii].add_patch(rect)
     fig.tight_layout()
     if saveFigs:
-        plt.savefig("terrain_data.pdf")
+        plt.savefig(f"{path}/terrain_data.pdf", dpi = 300)
     return fig, axs
 
 
 
-
-#plot_raw_terrain()
-#plt.show()
-
-
-##THIS IS WHERE WE WILL DO CROSSVAL MODELSELECTION:
-###import our data
-
-
-
 def crossval_modelselection(locations, selection_size, method,lambda_vals,mindeg,maxdeg,saveFigs=saveFigs):
-    # this function assumes that the crossval method in the solver function has a set randomstate
-    # otherwise when selecting the lambdas we would get different/random folds when fixing degree and varying lambda
-    # so not optimal, but just for illustration
-    # takes list of terrain locations (x,y) + selection_size
-    # takes Ridge and Lasso as methods
-    # requires array of lambda values to scan
-    # and which polynomial complexities to fit
-    # saveFigs optional to save plots
-    # returns optimal prediction + optimal parameters for each location
+    '''
+    Performs a model selection for Ridge/Lasso.
+    Note:
+        This function assumes that the crossval method in the solver function has a set randomstate
+        otherwise when selecting the lambdas we would get different/random folds when fixing degree and varying lambda
+        so not optimal, but just for illustration and further development
+    -Uses the franke_fit.Solver method with cross-validation to get a MSE_validation score
+    -Then selects for each degree the lambda that gave smallest validation score
+    -Then tests each of these models (degree, lambda) (using no resampling)
+    -Optimal model is the one with the smallest test MSE
+    -Inputs:
+        - locations: list of terrain locations (x,y)
+        - selection_size
+        - Ridge and Lasso as methods
+    requires array of lambda values to scan
+    and which polynomial complexities to fit
+    saveFigs optional to save plots
+    returns optimal prediction + optimal parameters for each location
+    '''
     predictions = []
     optimal_params = []
     fig, axs = plt.subplots(1,len(locations),figsize=(14,5)) # figure for plotting MSE_test
@@ -209,7 +154,7 @@ def crossval_modelselection(locations, selection_size, method,lambda_vals,mindeg
         
         # plot relative MSE (= 1 - R2 score)
         ax.plot(np.arange(mindeg, maxdeg+1), MSE_test_list/np.var(h))
-        ax.set_xlabel("Model degree"); ax.set_ylabel("Test MSE / Var(terrain)")
+        ax.set_xlabel("Order of polynomial"); ax.set_ylabel("Test MSE / Var(terrain)")
         ax.xaxis.get_major_locator().set_params(integer=True) # force x-axis to show integer degrees
 
         # save optimal parameters as a tuple (degree, lambda)
@@ -226,60 +171,95 @@ def crossval_modelselection(locations, selection_size, method,lambda_vals,mindeg
     fig.tight_layout()
     fig_lambda.tight_layout()
     if saveFigs:
-        fig.savefig(f"terrain_MSE_test_with_{method.__name__}.pdf")
-        fig_lambda.savefig(f"model_selection_with_{method.__name__}.pdf")
+        fig.savefig(f"{path}/terrain_MSE_test_with_{method.__name__}.pdf", dpi=300)
+        fig_lambda.savefig(f"{path}/model_selection_with_{method.__name__}.pdf", dpi=300)
     return predictions, optimal_params
 
+def get_mean_relerror(pred,data):
+    # returns the mean rel. error for predictions of data
+    relerror_array = np.abs((pred - data)/data)
+    return np.linalg.norm(relerror_array, ord=1)
+
+# plotting data
+plot_raw_terrain()
+
+# setting some parameters
 mindeg = 3
-maxdeg = 5
+maxdeg = 26
 locations = [(1270,1290), (1180,160)]
 selection_size = 50
 methods = [ff.OLS, ff.Ridge, ff.Lasso]
+
+# setting up plotting of optimal predictions for each location and method
 fig, axs = plt.subplots(len(locations), len(methods), figsize=(14,5))
 ims = [None]*len(locations)*len(methods) # saving ims to set up colorbars
+
+# also create figure to plot MSEs for OLS
+fig_OLS, axs_OLS = plt.subplots(1, len(locations), figsize=(14,5))
+
+mean_relerror_dict = {}
+
 for jj, method in enumerate(methods):
     # plot predictions for each method
     if method!=ff.OLS:
         # if method is Ridge or Lasso perform a model selection for best degree and lambda
-        n_lambdas = 9
+        n_lambdas = 20
         if method==ff.Ridge:
             lambda_vals = np.logspace(-7,1,n_lambdas)
         else:
             lambda_vals = np.logspace(-14,-6,n_lambdas) # smaller lambdas for Lasso
         predictions, optimal_params = crossval_modelselection(locations,selection_size,method,lambda_vals,mindeg,maxdeg)
     
+    mean_relerror_dict[method.__name__] = [] # create a list containing mean rel. error for given method
+    # loop over locations:
     for ii, location in enumerate(locations):
         ax = axs[ii,jj]
         x, y, h = prepare_grid(filename, location, selection_size)
         if method==ff.OLS:
-            degrees_list, _, MSE_test_list, _, _, _, _, _, z_pred_list = \
+            degrees_list, MSE_train_list, MSE_test_list, _, _, _, _, _, z_pred_list = \
                 ff.Solver(x, y, h, Nx=selection_size, Ny=selection_size, method=method, \
                     lamb = 0., useBootstrap = False, useCrossval = False,\
                     mindegree=mindeg,maxdegree=maxdeg)
+            # plot relative MSE (= 1 - R2 score)
+            ax_OLS = axs_OLS[ii]
+            ax_OLS.plot(degrees_list, MSE_test_list/np.var(h),label="Test")
+            ax_OLS.plot(degrees_list, MSE_train_list/np.var(h),label="Train")
+            ax_OLS.set_xlabel("Order of polynomial"); ax_OLS.set_ylabel("MSE / Var(terrain)")
+            ax_OLS.xaxis.get_major_locator().set_params(integer=True) # force x-axis to show integer degrees
+            ax_OLS.legend()
+
             modeldegree = np.argmin(MSE_test_list) + mindeg
             prediction = z_pred_list[np.argmin(MSE_test_list)]
-            ims[ii+jj] = ax.imshow(prediction, cmap="gray")
             ax.set_title(f"OLS, p={modeldegree}", fontsize=10)
             #ax.annotate(f"p = {modeldegree}", xy=(selection_size//10,selection_size//10), color="red")
         else:
             prediction = predictions[ii] # jj=1 = Ridge, jj=2 = Lasso
             modeldegree = optimal_params[jj-1][0]
             lamb = optimal_params[ii][1]
-            ims[ii+jj] = ax.imshow(prediction, cmap="gray")
-            methodname = ["Ridge", "Lasso"][jj-1]
-            ax.set_title("{:s}, p={:.0f}, $\lambda$={:.2e}".format(methodname, modeldegree, lamb),\
+            ax.set_title("{:s}, p={:.0f}, $\lambda$={:.2e}".format(method.__name__, modeldegree, lamb),\
                 fontsize=10)
             #ax.annotate("p = {:.0f}".format(modeldegree), xy=(selection_size//10,selection_size//10), color="red")
             #ax.annotate("$\lambda$={:.2e}".format(lamb), xy=(selection_size//10, selection_size-selection_size//10), color="red")
-        ax.set_xticks([]); ax.set_yticks([])
+        
+        ims[ii+jj] = ax.imshow(prediction, cmap="gray")
+        ax.set_xticks([]); ax.set_yticks([]) # remove pixel ticks on terrain figure
+        
+        mean_relerror_dict[method.__name__].append(get_mean_relerror(prediction,h.reshape(selection_size,selection_size)))
+        
 
+fig_OLS.tight_layout()
 fig.tight_layout()
+
 for i in range(len(locations)):
     fig.colorbar(ims[i*len(methods)], ax = axs[i,:], label="Altitude [m]")
+
 if saveFigs:
-    fig.savefig(f"terrain_predictions.pdf")
+    fig_OLS.savefig(f"{path}/terrain_MSE_test_with_OLS.pdf", dpi=300)
+    fig.savefig(f"{path}/terrain_predictions.pdf", dpi=300)
+
 plt.show()
-    
+
+print(mean_relerror_dict)
 
 
 
