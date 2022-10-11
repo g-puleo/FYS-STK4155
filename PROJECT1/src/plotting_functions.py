@@ -111,7 +111,7 @@ def betaval_plot(degrees_list, beta_mat, nr_ofbeta, maxdeg, title = "Betavalues"
     	plt.plot(degrees_list[:maxdeg], beta_mat[i,:maxdeg], label=f"$\\beta_{i}$", color = colorpal[i])
     plt.grid(True)
     plt.xlabel("Order of polynomial")
-    plt.ylabel("Optimal paramater")
+    plt.ylabel("Optimal parameter")
     plt.legend()
     if savefig:
         plt.savefig(f"{path}/{title}.png", dpi = 300)
