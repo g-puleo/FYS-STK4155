@@ -26,7 +26,7 @@ plt.rc('legend', fontsize=13)    # legend fontsize
 plt.rc('font', size=13)          # controls default text sizes
 
 
-def MSE_plot(degrees_list, MSE_train_list, MSE_test_list, mindegree= 0, titles_ = ["MSE"], savefig = False, path = "./Plots/MSE"):
+def MSE_plot(degrees_list, MSE_train_list, MSE_test_list, mindegree= 0, titles_ = ["MSE"], savefig = False, savename = "MSE", path = "./Plots/MSE"):
     fig, axs = plt.subplots(nrows = 1, ncols = len(MSE_train_list), sharey = True, tight_layout=True, figsize=(7*len(MSE_train_list),5))
     plt.gca().set_ylim(bottom=0)
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
@@ -49,7 +49,29 @@ def MSE_plot(degrees_list, MSE_train_list, MSE_test_list, mindegree= 0, titles_ 
         axs.set_ylabel("MSE Error")
     plt.grid(True)
     if savefig:
-        plt.savefig(f"{path}/{len(MSE_train_list)}.png", dpi = 300)
+        plt.savefig(f"{path}/{savename}.png", dpi = 300)
+    return
+
+
+def MSE_R2_plot(degrees_list, MSE_train_list, MSE_test_list, R2_train_list, R2_test_list, savefig = False, path = "./Plots/MSER2"):
+    fig, axs = plt.subplots(nrows = 1, ncols = 2, sharey = False, tight_layout=True, figsize=(7*2,5))
+    plt.gca().set_ylim(bottom=0)
+    pathlib.Path(path).mkdir(parents=True, exist_ok=True)
+    #axs.autoscale(enable=True, axis="y", tight=False)
+    axs[0].plot(degrees_list, MSE_train_list, label = "Train", color = colorpal[0])
+    axs[0].plot(degrees_list, MSE_test_list, label = "Test", color = colorpal[1])
+    axs[1].plot(degrees_list, R2_train_list, label = "Train", color = colorpal[0])
+    axs[1].plot(degrees_list, R2_test_list, label = "Test", color = colorpal[1])
+    axs[0].title.set_text(f"MSE")
+    axs[1].title.set_text(f"R2")
+    for i in range(2):
+        axs[i].set_xlabel("Order of polynomial")
+        axs[i].legend()
+    axs[0].set_ylabel("MSE Error")
+    axs[1].set_ylabel("R2 Error")
+    plt.grid(True)
+    if savefig:
+        plt.savefig(f"{path}/MSER2_OLS.png", dpi = 300)
     return
 
 def bias_var_plot(degrees_list, bias, variance, MSE_test_list, title = "BiasVar", savefig = False, path = "./Plots/BiasVar"):
@@ -67,7 +89,22 @@ def bias_var_plot(degrees_list, bias, variance, MSE_test_list, title = "BiasVar"
         plt.savefig(f"{path}/{title}.png", dpi = 300)
     return
 
+def bias_var_lambdas(degrees_list, ridge, lasso, lambdas, title = "BiasVar", savefig = False, savename = "fig", path = "./Plots/BiasVar"):
+    fig, axs = plt.subplots(nrows = 1, ncols = 2, sharey = False, tight_layout=True, figsize=(7*2,5))
+    linestyles = ["solid", "dotted", "dashed", "dashdot"]
+    for i in range(2):
+        axs[i].set_xlabel("Order of polynomial")
+        axs[i].legend()
+        for j in range(len(lambdas)):
+            axs[i].plot(degrees_list, ridge[j][0], label = "Error", linestyle=linestyles[0], color = colorpal[i+j])
+            axs[i].plot(degrees_list, ridge[j][1], label = "Bias", linestyle=linestyles[1], color = colorpal[i+j])
+            axs[i].plot(degrees_list, ridge[j][2], label = "Var", linestyle=linestyles[2], color = colorpal[i+j])
+        axs[i].legend()
+    return
+
+
 def betaval_plot(degrees_list, beta_mat, nr_ofbeta, maxdeg, title = "Betavalues", savefig = False, path = "./Plots/Betamatrix"):
+    plt.figure(figsize=(7,5), tight_layout=True)
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
     for i in range(nr_ofbeta):
     	plt.plot(degrees_list[:maxdeg], beta_mat[i,:maxdeg], label=f"$\\beta_{i}$", color = colorpal[i])
@@ -79,14 +116,14 @@ def betaval_plot(degrees_list, beta_mat, nr_ofbeta, maxdeg, title = "Betavalues"
         plt.savefig(f"{path}/{title}.png", dpi = 300)
     return
 
-def gridsearch_plot(MSE_2d_values, lambda_vals, mindeg, maxdeg, title = "gridsearch", savefig = False, path = "./Plots/Gridsearch"):
+def gridsearch_plot(MSE_2d_values, lambda_vals, mindeg, maxdeg, savefig = False, savename = "grid", path = "./Plots/Gridsearch"):
     plt.figure(figsize=(7,5), tight_layout=True)
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
     df= pd.DataFrame(MSE_2d_values, columns= lambda_vals, index = np.arange(mindeg, maxdeg+1))
     fig = sns.heatmap(df, cbar_kws={'label': 'MSE'})
     fig.set(xlabel="Lambda", ylabel="Order of polynomial")
     if savefig:
-        plt.savefig(f"{path}/{title}.png", dpi = 300)
+        plt.savefig(f"{path}/{savename}.png", dpi = 300)
     return
 
 

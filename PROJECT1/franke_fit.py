@@ -115,8 +115,9 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 	if method != OLS and lamb < 0:
 		sys.exit("Error: Lambda must have >=0 value if using Ridge or Lasso")
 
+
 	for degree in range(mindegree, maxdegree+1):
-		print(f"Degree {degree}/{maxdegree}")
+		#print(f"Degree {degree}/{maxdegree}")
 
 		#set up design matrix for a polynomial of given degree
 		X = np.zeros(( Nx*Ny, (degree+1)*(degree+2)//2))
@@ -147,7 +148,7 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 					beta_opt, z_tilde_train, z_tilde_test = method(X_train_b, X_test, z_train_b, lamb)
 				MSE_avg_train += utils.MSE(z_train_b , z_tilde_train)
 				MSE_avg_test += utils.MSE(z_test, z_tilde_test)
-				z_pred[:,i:i+1] = z_tilde_test
+				z_pred[:,i:i+1] = z_tilde_test.reshape(-1,1) #had to add this for it to work when doing multiple lambdas
 
 			MSE_test=MSE_avg_test/N_bootstraps
 			MSE_train=MSE_avg_train/N_bootstraps
@@ -174,7 +175,7 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 					beta_opt, z_tilde_train, z_tilde_test = z_mean_train.reshape(-1), z_mean_train, z_mean_train
 				else:
 					beta_opt, z_tilde_train, z_tilde_test = method(X_train, X_test, z_train, lamb)
-				
+
 				MSE_avg_train += utils.MSE(z_train , z_tilde_train)
 				MSE_avg_test += utils.MSE(z_test, z_tilde_test)
 
@@ -222,7 +223,7 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 	plt.grid(True)
 	"""
 
-	return z_pred_list, degrees_list, MSE_train_list, MSE_test_list, bias, variance, beta_matrix, R2_train_list, R2_test_list
+	return degrees_list, MSE_train_list, MSE_test_list, bias, variance, beta_matrix, R2_train_list, R2_test_list, z_pred_list
 
 """
 #Solver(OLS, useBootstrap=False, useCrossval=False, useScaling = False)
