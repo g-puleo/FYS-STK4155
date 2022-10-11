@@ -105,16 +105,13 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 		print("Using bootstrap ", end ="")
 	elif useCrossval:
 		print(f"Using 5-fold cross validation .")
-	else:
-		1
+
 
 	print("\n")
 	#Check if correct input
 	if method not in [OLS, Ridge, Lasso, Ridge_scikit]:
 		sys.exit(f"Error: Method [{method}] is not compatible. Must be in [OLS, Ridge, Lasso]")
 
-
-	print(method)
 	if method != OLS and lamb < 0:
 		sys.exit("Error: Lambda must have >=0 value if using Ridge or Lasso")
 
