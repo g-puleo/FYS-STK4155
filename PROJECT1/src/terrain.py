@@ -35,26 +35,10 @@ def prepare_grid(filename, location, selection_size, ravel=True):
     xmax = xmin + selection_size
     ymax = ymin + selection_size
 
-<<<<<<< HEAD
-=======
-    terrain = imread(filename)[ymin:ymax, xmin:xmax]
-
-    # plot terrain data
-    fig1 = plt.figure()
-    plt.imshow(terrain,cmap="gray")
-    plt.savefig(f"terrain plot {filename}.pdf")
-    plt.colorbar()
-
-    terrain = terrain.reshape(-1,1) # want array of shape (N,1)
-
-    #x = np.linspace(0, xmax-xmin, selection_size)
-    #y = np.linspace(0, ymax-ymin, selection_size)
->>>>>>> f00f76fb1e95dbce8bffce655569c9f637970cae
     x = np.linspace(-1,1,selection_size) # keep in mind pixel indices are arbitrary units
     y = np.linspace(-1,1,selection_size)
     x, y = np.meshgrid(x,y)
 
-<<<<<<< HEAD
     h = imread(filename)[ymin:ymax, xmin:xmax]
     # # plot terrain data
     # fig1 = plt.figure()
@@ -66,12 +50,10 @@ def prepare_grid(filename, location, selection_size, ravel=True):
         h = h.reshape(-1,1) # want array of shape (N,1)
         
     return x, y, h
-
+"""
 def terrain_func(method):
     
     
-=======
->>>>>>> f00f76fb1e95dbce8bffce655569c9f637970cae
     if method==OLS:
         lambda_vals = [0.]
     else:
@@ -90,13 +72,13 @@ def terrain_func(method):
         MSE_2d_values[:,lamb_idx] = MSE_test_list
 
     #fig = plotfnc.gridsearch_plot(MSE_2d_values, lambda_vals, mindeg, maxdeg, title = "gridsearch", savefig = False, path = "./Plots/Gridsearch")
-    """from matplotlib.colors import LogNorm, Normalize
-    plt.figure(figsize=(7,5), tight_layout=True)
-    fig = plt.figure()
-    axes = plt.gca()
-    axes.imshow(MSE_2d_values, cmap="autumn", norm=LogNorm())
-    axes.set_xlabel("Lambda"); axes.set_ylabel("Order of polynomial")
-    """
+    #from matplotlib.colors import LogNorm, Normalize
+    #plt.figure(figsize=(7,5), tight_layout=True)
+    #fig = plt.figure()
+    #axes = plt.gca()
+    #axes.imshow(MSE_2d_values, cmap="autumn", norm=LogNorm())
+    #axes.set_xlabel("Lambda"); axes.set_ylabel("Order of polynomial")
+    
 
     optimal_model_idx = np.argmin(MSE_2d_values)
     optimal_degree = optimal_model_idx//len(lambda_vals) + mindeg
@@ -116,7 +98,7 @@ def terrain_func(method):
         cool_function = lambda lamb: Solver(x,y,terrain,selection_size,selection_size,method,lamb,useCrossval=True,mindegree=degree,maxdegree=degree)
 
     return
-
+"""
 ##probably will be convenient to move this function to another file (plotting_functions.py)
 filename = 'SRTM_data_Norway_2.tif'
 
@@ -140,7 +122,14 @@ def plot_raw_terrain():
         im = axs[ii].imshow(h_, cmap=cmaps[ii]) 
         axs[ii].grid(visible=False)
         fig.colorbar(im, ax=axs[ii])
+        if ii==2:
+            for jj in range(2):
+                x_idx, y_idx = region_pos[jj]
+                #y_idx -= selection_size[jj]
+                rect = plt.Rectangle((x_idx,y_idx),selection_size[jj],selection_size[jj], fill=False, color="black")
+                axs[ii].add_patch(rect)
     fig.tight_layout()
+    plt.savefig("terrain_data.pdf")
     return fig, axs
 
 
