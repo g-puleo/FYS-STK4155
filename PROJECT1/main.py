@@ -67,11 +67,8 @@ def generate_reults(showfigs = False):
 
     plotfnc.MSE_plot(degrees_list, MSE_list_train, MSE_list_test, titles_ = titles, savename = "bootcross", savefig = True)
 
-    #(5)(E-F: CROSSVAL), (5) [2 figures, one ridge, one lasso]
-    # MSE COLORPLOT IN RIDGE AND LASSO (gridsearch)
-    print("Plotting gridsearch MSE, ridge and lasso.")
-    maxdeg = 13
-    crossval = True
+    #(5) Crossvalidation with k-fold gridsearch with ridge and lasso. MSE score
+    print("Plotting gridsearch MSE, ridge and lasso with crossval.")
     lambda_vals = np.logspace(-6, 0, 7)
     mindeg = 3
     maxdeg = 10
@@ -84,9 +81,10 @@ def generate_reults(showfigs = False):
         for j in range(maxdeg-mindeg+1):
             MSE_2d[j,i] = MSE_test_list[j] #fix indexing cause of length
 
-    plotfnc.gridsearch_plot(MSE_2d, lambda_vals, mindeg, maxdeg, savename="Ridge_grid", savefig = True)
+    plotfnc.gridsearch_plot(MSE_2d, lambda_vals, mindeg, maxdeg, savename="Ridge_crossval_grid", savefig = True)
 
-    lambda_vals = np.logspace(-12, -3, 10)
+    maxdeg = 20
+    lambda_vals = np.logspace(-7, -3, 5)
     method = Lasso
     MSE_2d = np.zeros(shape=(maxdeg+1-mindeg ,len(lambda_vals)))
     #Fill array with MSE values. x-axis lambda, y-axis degree
@@ -96,10 +94,39 @@ def generate_reults(showfigs = False):
         for j in range(maxdeg-mindeg+1):
             MSE_2d[j,i] = MSE_test_list[j] #fix indexing cause of length
 
+    plotfnc.gridsearch_plot(MSE_2d, lambda_vals, mindeg, maxdeg, savename="Lasso_crossval_grid", savefig = True)
+
+
+    #(6) No resampling gridsearch with ridge and lasso. MSE score
+    print("Plotting gridsearch MSE, ridge and lasso.")
+    maxdeg = 13
+    crossval = True
+    lambda_vals = np.logspace(-6, 0, 7)
+    method = Ridge
+    MSE_2d = np.zeros(shape=(maxdeg+1-mindeg ,len(lambda_vals)))
+    #Fill array with MSE values. x-axis lambda, y-axis degree
+    for i in range(len(lambda_vals)):
+        degrees_list, MSE_train_list, MSE_test_list, _, _, _, _, _, _ = \
+        Solver(x_, y_, z_, Nx_, Ny_, Ridge, useBootstrap=False, useCrossval=False, lamb=lambda_vals[i], mindegree = mindeg, maxdegree = maxdeg)
+        for j in range(maxdeg-mindeg+1):
+            MSE_2d[j,i] = MSE_test_list[j] #fix indexing cause of length
+
+    plotfnc.gridsearch_plot(MSE_2d, lambda_vals, mindeg, maxdeg, savename="Ridge_grid", savefig = True)
+
+    maxdeg = 14
+    lambda_vals = np.logspace(-7, -3, 5)
+    method = Lasso
+    MSE_2d = np.zeros(shape=(maxdeg+1-mindeg ,len(lambda_vals)))
+    #Fill array with MSE values. x-axis lambda, y-axis degree
+    for i in range(len(lambda_vals)):
+        degrees_list, MSE_train_list, MSE_test_list, _, _, _, _, _, _ = \
+        Solver(x_, y_, z_, Nx_, Ny_, method, useBootstrap=False, useCrossval=False, lamb=lambda_vals[i], mindegree = mindeg, maxdegree = maxdeg)
+        for j in range(maxdeg-mindeg+1):
+            MSE_2d[j,i] = MSE_test_list[j] #fix indexing cause of length
+
     plotfnc.gridsearch_plot(MSE_2d, lambda_vals, mindeg, maxdeg, savename="Lasso_grid", savefig = True)
 
-
-    #6 [2 figures, or 1 figure with 2 axis side by side]
+    #7 [2 figures, or 1 figure with 2 axis side by side]
     #BIAS-VARIANCE TRADEOFF, AS FUNCTION OF POLYDEG USING ONLY BOOTSTRAP,for both RIDGE AND LASSO
     print("Plotting bias-variance bootstrapped ridge and lasso.")
     lambda_vals = np.logspace(-2, 0, 3)
@@ -118,7 +145,7 @@ def generate_reults(showfigs = False):
         Solver(x_, y_, z_, Nx_, Ny_, Lasso, useBootstrap=True, useCrossval=False, lamb=lambda_, mindegree = mindeg, maxdegree = maxdeg)
         lasso.append([MSE_test_list, bias, variance])
 
-    plotfnc.bias_var_lambdas(degrees_list, ridge, lasso, lambda_vals)
+    plotfnc.bias_var_lambdas(degrees_list, ridge, lasso, lambda_vals, savefig=True)
 
     if showfigs:
         plt.show()
@@ -146,6 +173,8 @@ def main():
         bool_show = get_bool(showfigs_)
         generate_reults(showfigs = bool_show)
     """
+
+
 
 
     #plot_terrain()

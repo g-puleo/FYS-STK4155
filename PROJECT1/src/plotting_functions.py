@@ -101,6 +101,8 @@ def bias_var_lambdas(degrees_list, ridge, lasso, lambdas, title = "BiasVar", sav
         axs[i].legend()
         axs[i].set_xlabel("Order of polynomial")
         axs[i].set_yscale("log")
+    if savefig:
+        plt.savefig(f"{path}/{title}.png", dpi = 300)
     return
 
 
@@ -120,32 +122,10 @@ def betaval_plot(degrees_list, beta_mat, nr_ofbeta, maxdeg, title = "Betavalues"
 def gridsearch_plot(MSE_2d_values, lambda_vals, mindeg, maxdeg, savefig = False, savename = "grid", path = "./Plots/Gridsearch"):
     plt.figure(figsize=(7,5), tight_layout=True)
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
-    df= pd.DataFrame(MSE_2d_values, columns= lambda_vals, index = np.arange(mindeg, maxdeg+1))
+    df = pd.DataFrame(MSE_2d_values, columns= lambda_vals, index = np.arange(mindeg, maxdeg+1))
+    df.round(2)
     fig = sns.heatmap(df, cbar_kws={'label': 'MSE'})
     fig.set(xlabel="Lambda", ylabel="Order of polynomial")
     if savefig:
         plt.savefig(f"{path}/{savename}.png", dpi = 300)
-    return
-
-
-def function_plot(x, y, z):
-    # Doesent work too well.
-    fig = plt.figure(figsize =(14, 9))
-    ax = plt.axes(projection ='3d')
-
-    # Creating color map
-    my_cmap = plt.get_cmap('hot')
-
-    # Creating plot
-    surf = ax.plot_surface(x, y, z,
-                           cmap = my_cmap,
-                           edgecolor ='none')
-
-    fig.colorbar(surf, ax = ax,
-                 shrink = 0.5, aspect = 5)
-
-    ax.set_title('Surface plot')
-
-    # show plot
-    plt.show()
     return
