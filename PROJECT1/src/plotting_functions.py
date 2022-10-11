@@ -35,7 +35,7 @@ def MSE_plot(degrees_list, MSE_train_list, MSE_test_list, mindegree= 0, titles_ 
         if len(MSE_train_list) > 1:
             axs_ = axs[i]
         else:
-            axs_ = axsq
+            axs_ = axs
         axs_.autoscale(enable=True, axis="y", tight=False)
         axs_.plot(degrees_list, MSE_train_list[i][mindegree:], label = "Train", color = colorpal[0])
         axs_.plot(degrees_list, MSE_test_list[i][mindegree:], label = "Test", color = colorpal[1])
