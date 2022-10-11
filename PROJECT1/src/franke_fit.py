@@ -90,8 +90,8 @@ def Lasso(X_train, X_test, z_train, lamb):
 def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval = False, mindegree = 0, maxdegree = 12):
 	#Set up list to store resultss
 	z_pred_list = []
-	MSE_train_list = np.zeros(maxdegree-mindegree+1)
-	MSE_test_list = np.zeros(maxdegree-mindegree+1)
+	MSE_train_list = []#np.zeros(maxdegree-mindegree+1)
+	MSE_test_list = []#np.zeros(maxdegree-mindegree+1)
 	R2_train_list = np.zeros(maxdegree-mindegree+1)
 	R2_test_list = np.zeros(maxdegree-mindegree+1)
 	bias = np.zeros(maxdegree-mindegree+1)
@@ -169,21 +169,19 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 			# Seperate data into k folds
 			k = 5
 			kfold = KFold(n_splits = k, shuffle = True)
-			for train_inds, test_inds in kfold.split(X):
-				X_train, X_test = X[train_inds], X[test_inds]
-				z_train, z_test = z[train_inds], z[test_inds]
+			for train_inds, test_inds in kfold.split(X_train):
+				X_train_k, X_test_k = X_train[train_inds], X_train[test_inds]
+				z_train_k, z_test_k = z_train[train_inds], z_train[test_inds]
 				if degree==0:
 					# if deg=0 just have the intercept = mean(z)
-					z_mean_train = np.array([[np.mean(z_train)]])
+					z_mean_train = np.array([[np.mean(z_train_k)]])
 					beta_opt, z_tilde_train, z_tilde_test = z_mean_train.reshape(-1), z_mean_train, z_mean_train
 				else:
-					beta_opt, z_tilde_train, z_tilde_test = method(X_train, X_test, z_train, lamb)
+					beta_opt, z_tilde_train, z_tilde_test = method(X_train_k, X_test_k, z_train_k, lamb)
 
-				MSE_avg_train += utils.MSE(z_train , z_tilde_train)
-				MSE_avg_test += utils.MSE(z_test, z_tilde_test)
-
-				#print(utils.MSE(z_train , z_tilde_train))
-
+				MSE_avg_train += utils.MSE(z_train_k , z_tilde_train)
+				MSE_avg_test += utils.MSE(z_test_k, z_tilde_test)
+				
 			MSE_test=MSE_avg_test/k
 			MSE_train=MSE_avg_train/k
 
@@ -205,8 +203,8 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 			R2_test_list[degree-mindegree]   = utils.R2(z_test, z_tilde_test)
 
 		#evaluate MSE
-		MSE_train_list[degree-mindegree]  = MSE_train
-		MSE_test_list[degree-mindegree]  = MSE_test
+		MSE_train_list.append(MSE_train)
+		MSE_test_list.append(MSE_test)
 		# add prediction to list (for plotting purposes)
 		X_scaled,_,_ = scale(X,X,z) # want the scaled data
 		if degree == 0:
