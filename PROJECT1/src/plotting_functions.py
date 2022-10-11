@@ -44,9 +44,9 @@ def MSE_plot(degrees_list, MSE_train_list, MSE_test_list, mindegree= 0, titles_ 
         axs_.legend()
 
     if len(MSE_train_list) > 1:
-        axs[0].set_ylabel("MSE Error")
+        axs[0].set_ylabel("MSE")
     else:
-        axs.set_ylabel("MSE Error")
+        axs.set_ylabel("MSE")
     plt.grid(True)
     if savefig:
         plt.savefig(f"{path}/{savename}.png", dpi = 300)

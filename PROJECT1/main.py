@@ -53,7 +53,7 @@ def generate_reults(showfigs = False):
     maxdeg = 15
     MSE_list_train = []
     MSE_list_test = []
-    titles = ["MSE Bootstrap", "MSE Crossval"]
+    titles = ["Bootstrap", "Cross-validation"]
 
     degrees_list, MSE_tr_boot, MSE_te_boot, _, _, _, _, _, _ \
     = Solver(x_, y_, z_, Nx_, Ny_, OLS, lamb = 0, useBootstrap=True, useCrossval=False, maxdegree = maxdeg)
