@@ -45,12 +45,12 @@ def generate_reults(showfigs = False):
     maxdeg_ = 10
     degrees_list, MSE_train_list, MSE_test_list, bias, variance, beta_matrix, R2_train_list, R2_test_list, z_pred \
     = Solver(x_, y_, z_, Nx_, Ny_, OLS, lamb = 0, useBootstrap=True, useCrossval=False, maxdegree = maxdeg_)
-    plotfnc.bias_var_plot(degrees_list, bias, variance, MSE_test_list,  savefig = True)
+    plotfnc.bias_var_plot(degrees_list, bias, variance, MSE_test_list, savename = "biasvar_bootOLS",  savefig = True)
 
     #(4)COMPARISON BETWEEN ESTIMATES OF MSE IN CROSSVAL AND BOOTSTRAP, OLS. 2 plots to reuse plotting func
     #Bootstrap value goes a bit crazy for higher complexity which used to a problem which i thought was fixed
     print("Plotting MSE for OLS w/boot and w/crossval.")
-    maxdeg = 8
+    maxdeg = 15
     MSE_list_train = []
     MSE_list_test = []
     titles = ["MSE Bootstrap", "MSE Crossval"]
@@ -80,7 +80,6 @@ def generate_reults(showfigs = False):
         Solver(x_, y_, z_, Nx_, Ny_, Ridge, useBootstrap=False, useCrossval=True, lamb=lambda_vals[i], mindegree = mindeg, maxdegree = maxdeg)
         for j in range(maxdeg-mindeg+1):
             MSE_2d[j,i] = MSE_test_list[j] #fix indexing cause of length
-
     plotfnc.gridsearch_plot(MSE_2d, lambda_vals, mindeg, maxdeg, savename="Ridge_crossval_grid", savefig = True)
 
     maxdeg = 20
@@ -93,7 +92,6 @@ def generate_reults(showfigs = False):
         Solver(x_, y_, z_, Nx_, Ny_, method, useBootstrap=False, useCrossval=True, lamb=lambda_vals[i], mindegree = mindeg, maxdegree = maxdeg)
         for j in range(maxdeg-mindeg+1):
             MSE_2d[j,i] = MSE_test_list[j] #fix indexing cause of length
-
     plotfnc.gridsearch_plot(MSE_2d, lambda_vals, mindeg, maxdeg, savename="Lasso_crossval_grid", savefig = True)
 
 
@@ -110,7 +108,6 @@ def generate_reults(showfigs = False):
         Solver(x_, y_, z_, Nx_, Ny_, Ridge, useBootstrap=False, useCrossval=False, lamb=lambda_vals[i], mindegree = mindeg, maxdegree = maxdeg)
         for j in range(maxdeg-mindeg+1):
             MSE_2d[j,i] = MSE_test_list[j] #fix indexing cause of length
-
     plotfnc.gridsearch_plot(MSE_2d, lambda_vals, mindeg, maxdeg, savename="Ridge_grid", savefig = True)
 
     maxdeg = 14
@@ -123,11 +120,11 @@ def generate_reults(showfigs = False):
         Solver(x_, y_, z_, Nx_, Ny_, method, useBootstrap=False, useCrossval=False, lamb=lambda_vals[i], mindegree = mindeg, maxdegree = maxdeg)
         for j in range(maxdeg-mindeg+1):
             MSE_2d[j,i] = MSE_test_list[j] #fix indexing cause of length
-
     plotfnc.gridsearch_plot(MSE_2d, lambda_vals, mindeg, maxdeg, savename="Lasso_grid", savefig = True)
 
-    #7 [2 figures, or 1 figure with 2 axis side by side]
-    #BIAS-VARIANCE TRADEOFF, AS FUNCTION OF POLYDEG USING ONLY BOOTSTRAP,for both RIDGE AND LASSO
+
+    """
+    #7 Bias variance tradeoff. Using ridge and lasso, both with bootstrap.
     print("Plotting bias-variance bootstrapped ridge and lasso.")
     lambda_vals = np.logspace(-2, 0, 3)
     ridge = []
@@ -146,7 +143,7 @@ def generate_reults(showfigs = False):
         lasso.append([MSE_test_list, bias, variance])
 
     plotfnc.bias_var_lambdas(degrees_list, ridge, lasso, lambda_vals, savefig=True)
-
+    """
     if showfigs:
         plt.show()
 

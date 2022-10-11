@@ -100,13 +100,6 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 	beta_matrix = np.zeros( ( (maxdegree+1)*(maxdegree+2)//2, maxdegree-mindegree+1 ) )
 
 
-	#Print info when run
-	print(f"Running solver with {method.__name__}. Degrees: {maxdegree}.", end = "")
-	if useBootstrap:
-		print("Using bootstrap ", end ="")
-	elif useCrossval:
-		print(f"Using 5-fold cross validation .")
-
 	if showruninfo:
 		#Print info when run
 		print(f"Running solver with {method.__name__}. Degrees: {maxdegree}.", end = "")
@@ -116,6 +109,7 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 			print(f"Using 5-fold cross validation .")
 
 		print("\n")
+
 	#Check if correct input
 	if method not in [OLS, Ridge, Lasso, Ridge_scikit]:
 		sys.exit(f"Error: Method [{method}] is not compatible. Must be in [OLS, Ridge, Lasso]")
@@ -156,7 +150,7 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 					beta_opt, z_tilde_train, z_tilde_test = method(X_train_b, X_test, z_train_b, lamb)
 				MSE_avg_train += utils.MSE(z_train_b , z_tilde_train)
 				MSE_avg_test += utils.MSE(z_test, z_tilde_test)
-				z_pred[:,i:i+1] = z_tilde_test.reshape(-1,1) #had to add this for it to work when doing multiple lambdas
+				z_pred[:,i:i+1] = z_tilde_test #had to add this for it to work when doing multiple lambdas
 
 			MSE_test=MSE_avg_test/N_bootstraps
 			MSE_train=MSE_avg_train/N_bootstraps
@@ -174,7 +168,7 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 			# Seperate data into k folds
 			k = 5
 			kfold = KFold(n_splits = k, shuffle = True)
-			for train_inds, test_inds in kfold.split(X):
+			for train_inds, test_inds in kfold.split(X_train):
 				X_train, X_test = X[train_inds], X[test_inds]
 				z_train, z_test = z[train_inds], z[test_inds]
 				if degree==0:

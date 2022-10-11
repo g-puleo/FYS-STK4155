@@ -74,19 +74,18 @@ def MSE_R2_plot(degrees_list, MSE_train_list, MSE_test_list, R2_train_list, R2_t
         plt.savefig(f"{path}/MSER2_OLS.png", dpi = 300)
     return
 
-def bias_var_plot(degrees_list, bias, variance, MSE_test_list, title = "BiasVar", savefig = False, path = "./Plots/BiasVar"):
+def bias_var_plot(degrees_list, bias, variance, MSE_test_list, savename = "biasvar", savefig = False, path = "./Plots/BiasVar"):
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
     plt.figure(figsize=(7,5), tight_layout=True)
-    plt.title(f"{title}")
     plt.plot(degrees_list, bias, label = "Bias", color = colorpal[0])
     plt.plot(degrees_list, variance, label = "Variance", color = colorpal[1])
-    plt.plot(degrees_list, MSE_test_list, label = "MSE Error", color = colorpal[2])
+    plt.plot(degrees_list, MSE_test_list, label = "MSE", color = colorpal[2])
     plt.xlabel("Order of polynomial")
     plt.ylabel("Numerical estimate")
     plt.grid(True)
     plt.legend()
     if savefig:
-        plt.savefig(f"{path}/{title}.png", dpi = 300)
+        plt.savefig(f"{path}/{savename}.png", dpi = 300)
     return
 
 def bias_var_lambdas(degrees_list, lists , lambdas, title = "BiasVar", savefig = False, savename = "fig", path = "./Plots/BiasVar"):
@@ -94,7 +93,6 @@ def bias_var_lambdas(degrees_list, lists , lambdas, title = "BiasVar", savefig =
     linestyles = ["solid", "dotted", "dashed", "dashdot"]
     methods = ['Ridge', 'Lasso']
     for i in range(2):
-
         for j in range(len(lambdas)):
             axs[i].plot(degrees_list, lists[i][j][0], label = f"$\\lambda$={lambdas[j]}", linestyle=linestyles[0], color = colorpal[j])
             axs[i].plot(degrees_list, lists[i][j][1], linestyle=linestyles[1], color = colorpal[j])
@@ -103,7 +101,7 @@ def bias_var_lambdas(degrees_list, lists , lambdas, title = "BiasVar", savefig =
         axs[i].set_xlabel("Order of polynomial")
         axs[i].set_yscale("log")
 
-        axs[i].set_title(methods[i])    
+        axs[i].set_title(methods[i])
 
     if savefig:
         plt.savefig(f"{path}/{title}.png", dpi = 300)
