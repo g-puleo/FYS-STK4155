@@ -103,6 +103,8 @@ def bias_var_lambdas(degrees_list, lists , lambdas, title = "BiasVar", savefig =
         axs[i].set_xlabel("Order of polynomial")
         axs[i].set_yscale("log")
         axs[i].set_title(methods[i])
+
+    plt.savefig(f"{path}/{title}.png", dpi = 300)
     return
 
 
