@@ -99,6 +99,14 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 	error = np.zeros(maxdegree-mindegree+1)
 	beta_matrix = np.zeros( ( (maxdegree+1)*(maxdegree+2)//2, maxdegree-mindegree+1 ) )
 
+
+	#Print info when run
+	print(f"Running solver with {method.__name__}. Degrees: {maxdegree}.", end = "")
+	if useBootstrap:
+		print("Using bootstrap ", end ="")
+	elif useCrossval:
+		print(f"Using 5-fold cross validation .")
+
 	if showruninfo:
 		#Print info when run
 		print(f"Running solver with {method.__name__}. Degrees: {maxdegree}.", end = "")

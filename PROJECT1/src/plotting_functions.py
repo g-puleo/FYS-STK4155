@@ -89,18 +89,22 @@ def bias_var_plot(degrees_list, bias, variance, MSE_test_list, title = "BiasVar"
         plt.savefig(f"{path}/{title}.png", dpi = 300)
     return
 
-def bias_var_lambdas(degrees_list, ridge, lasso, lambdas, title = "BiasVar", savefig = False, savename = "fig", path = "./Plots/BiasVar"):
+def bias_var_lambdas(degrees_list, lists , lambdas, title = "BiasVar", savefig = False, savename = "fig", path = "./Plots/BiasVar"):
     fig, axs = plt.subplots(nrows = 1, ncols = 2, sharey = False, tight_layout=True, figsize=(7*2,5))
     linestyles = ["solid", "dotted", "dashed", "dashdot"]
+    methods = ['Ridge', 'Lasso']
     for i in range(2):
 
         for j in range(len(lambdas)):
-            axs[i].plot(degrees_list, ridge[j][0], label = "Error", linestyle=linestyles[0], color = colorpal[i+j])
-            axs[i].plot(degrees_list, ridge[j][1], label = "Bias", linestyle=linestyles[1], color = colorpal[i+j])
-            axs[i].plot(degrees_list, ridge[j][2], label = "Var", linestyle=linestyles[2], color = colorpal[i+j])
+            axs[i].plot(degrees_list, lists[i][j][0], label = f"$\\lambda$={lambdas[j]}", linestyle=linestyles[0], color = colorpal[j])
+            axs[i].plot(degrees_list, lists[i][j][1], linestyle=linestyles[1], color = colorpal[j])
+            axs[i].plot(degrees_list, lists[i][j][2], linestyle=linestyles[2], color = colorpal[j])
         axs[i].legend()
         axs[i].set_xlabel("Order of polynomial")
         axs[i].set_yscale("log")
+
+        axs[i].set_title(methods[i])    
+
     if savefig:
         plt.savefig(f"{path}/{title}.png", dpi = 300)
     return
