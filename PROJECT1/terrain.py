@@ -10,39 +10,49 @@ Analysing terrain data
 gridsearch_plot(MSE_2d_values, lambda_vals, mindeg, maxdeg, title = "gridsearch", savefig = False, path = "./Plots/Gridsearch"):
 
 """
-
-
-
-from math import degrees
-from franke_fit import *
+import franke_fit as ff
+import numpy as np
+import matplotlib
 from imageio import imread
 import plotting_functions as plotfnc
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt 
+import matplotlib.patches as patches
+
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 
-def terrain_func(filename, location, selection_size, method):
-    # location = (x,y) = pixels of upper left corner of region of interest
+
+def prepare_grid(filename, location, selection_size, ravel=True):
+    ''' Reads .tif file with altitude data.
+        returns x,y, in meshgrid format, together with corresponding altitude h
+        Inputs:
+            filename,
+            location = (x,y) pixels of upper left corner of region of interest
+            selection size: select a N x N square grid, subset of the whole image.
+    '''
     xmin = location[0]
     ymin = location[1]
     xmax = xmin + selection_size
     ymax = ymin + selection_size
 
-    terrain = imread(filename)[ymin:ymax, xmin:xmax]
-
-    # plot terrain data
-    fig1 = plt.figure()
-    plt.imshow(terrain,cmap="gray")
-    plt.savefig(f"terrain plot {filename}.pdf")
-    plt.colorbar()
-
-    terrain = terrain.reshape(-1,1) # want array of shape (N,1)
-
-    #x = np.linspace(0, xmax-xmin, selection_size) 
-    #y = np.linspace(0, ymax-ymin, selection_size)
     x = np.linspace(-1,1,selection_size) # keep in mind pixel indices are arbitrary units
     y = np.linspace(-1,1,selection_size)
     x, y = np.meshgrid(x,y)
+
+    h = imread(filename)[ymin:ymax, xmin:xmax]
+    # # plot terrain data
+    # fig1 = plt.figure()
+    # plt.imshow(h,cmap="gray")
+    # #plt.savefig(f"terrain plot {filename}.pdf")
+    # plt.colorbar()
+
+    if ravel:
+        h = h.reshape(-1,1) # want array of shape (N,1)
+        
+    return x, y, h
+
+def terrain_func(method):
+    
     
     if method==OLS:
         lambda_vals = [0.]
@@ -89,14 +99,79 @@ def terrain_func(filename, location, selection_size, method):
 
     return
 
+##probably will be convenient to move this function to another file (plotting_functions.py)
 filename = 'SRTM_data_Norway_2.tif'
-location = (1270,1290)
+
+def plot_raw_terrain():
+
+    region_pos = [(1270,1290), (1180,160), (0,0)]
+    selection_size = [  50, 50 , 1800]
+    cmaps = ['gray']*2 + ['YlOrBr']
+    fig, axs = plt.subplots(1,len(region_pos), figsize=(13,4))
+
+    #normalize scale so that all figures have same colorscale
+    h = [ prepare_grid(filename, region_pos[ii], selection_size[ii], ravel=False )[2] \
+           for ii in range(len(region_pos)) ]
+
+
+    #mynorm = matplotlib.cm.colors.Normalize(vmin=np.min( [np.min(h[ii]) for ii in range(2)]), \
+    #    vmax = np.max( [np.max(h[ii]) for ii in range(2)] ) )
+
+    for ii, h_ in enumerate(h):
+        #output[2] of prepare_grid is the altitude profile as 2d matrix
+        im = axs[ii].imshow(h_, cmap=cmaps[ii]) 
+        axs[ii].grid(visible=False)
+        fig.colorbar(im, ax=axs[ii])
+    fig.tight_layout()
+    return fig, axs
+
+
+
+
+plot_raw_terrain()
+plt.show()
+
+'''
+##THIS IS WHERE WE WILL DO CROSSVAL MODELSELECTION:
+###import our data
+location = 
 selection_size = 50
 
-for method in [Ridge,Lasso]:
-    terrain_func(filename, location, selection_size, method)
+x,y,h = prepare_grid(filename, location, selection_size)
+
+##########perform Cross Validation for different values of lambda:
+
+#set up range of polydegree to scan
+mindeg = 1
+maxdeg = 25
+
+#set up grid of parameters to scan
+lambda_vals = np.logspace(-8,0,1)
+optimal_lambda = np.empty(maxdeg-mindeg+1)
+#run cross validation to asses error for different lambdas:
+
+validation_MSE = np.empty((maxdeg-mindeg+1,len(lambda_vals)))
+for ii, lamb in enumerate(lmabda_vals):
+
+    current_validation_MSE_list = ff.Solver(x, y, h, Nx=selection_size, Ny=selection_size, method=Ridge, \
+            lamb = lamb, useBootstrap = False, useCrossval = True,\
+             mindegree=mindeg,maxdegree=maxdeg)[3]
+    #ff.Solver()[3] corresponds to the MSE_test_list, which contains the MSE_test estimates
+    #for various polynomial degrees.
+    validation_MSE[:,ii] = np.array(current_validation_MSE_list)
+
+#find optimal lambda (minimum of each row)
+
+optimal_lambda = np.min(validation_MSE, axis=1)
+
 
 plt.show()
+
+'''
+
+
+
+
 
 #terrain = terrain.reshape(-1,1) # want array of shape (n,1)
 #terrain = utils.FrankeFunction(x,y) + 0.*np.random.randn(selection_size, selection_size)
