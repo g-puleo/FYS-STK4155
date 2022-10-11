@@ -123,27 +123,26 @@ def generate_reults(showfigs = False):
     plotfnc.gridsearch_plot(MSE_2d, lambda_vals, mindeg, maxdeg, savename="Lasso_grid", savefig = True)
 
 
-    """
+    
     #7 Bias variance tradeoff. Using ridge and lasso, both with bootstrap.
-    print("Plotting bias-variance bootstrapped ridge and lasso.")
-    lambda_vals = np.logspace(-2, 0, 3)
-    ridge = []
-    lasso = []
-    mindeg = 0
+    lambda_vals = np.array([1e-9, 1e-1, 50])
+    lists = [ [], [] ]
+    mindeg = 1
     maxdeg = 8
     i = 0
 
     for lambda_ in lambda_vals:
-        degrees_list, MSE_train_list, MSE_test_list, bias, variance, _, _, _, _ = \
-        Solver(x_, y_, z_, Nx_, Ny_, Ridge, useBootstrap=True, useCrossval=False, lamb=lambda_, mindegree = mindeg, maxdegree = maxdeg)
-        ridge.append([MSE_test_list, bias, variance])
+        for jj, method in enumerate([ff.Ridge, ff.Lasso]):
+            #print(method)
+            #print(type(method))
+            degrees_list, MSE_train_list, MSE_test_list, bias, variance, _, _, _, _ = \
+            ff.Solver(x_, y_, z_, Nx_, Ny_, method, useBootstrap=True, useCrossval=False, lamb=lambda_, mindegree = mindeg, maxdegree = maxdeg)
+            lists[jj].append([MSE_test_list, bias, variance])
 
-        degrees_list, MSE_train_list, MSE_test_list, bias, variance, _, _, _, _ = \
-        Solver(x_, y_, z_, Nx_, Ny_, Lasso, useBootstrap=True, useCrossval=False, lamb=lambda_, mindegree = mindeg, maxdegree = maxdeg)
-        lasso.append([MSE_test_list, bias, variance])
 
-    plotfnc.bias_var_lambdas(degrees_list, ridge, lasso, lambda_vals, savefig=True)
-    """
+    plotfnc.bias_var_lambdas(degrees_list, lists, lambda_vals, title="BiasVarLambda")
+    plt.show()
+    
     if showfigs:
         plt.show()
 
