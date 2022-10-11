@@ -191,7 +191,7 @@ def crossval_modelselection(locations, selection_size, method,lambda_vals,mindeg
         ax_lambda.set_xlabel("$\lambda$")
         ax_lambda.set_ylabel("Val. MSE / Var(terrain)")
         ax_lambda.set_xscale("log")
-        ax_lambda.xaxis.set_major_formatter(FormatStrFormatter('%.03e'))
+        ax_lambda.yaxis.set_major_formatter(FormatStrFormatter('%.03f'))
 
         #find optimal lambdas (minimum of each row)
         optimal_lambdas = lambda_vals[np.argmin(validation_MSE, axis=1)]

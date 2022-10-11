@@ -44,12 +44,12 @@ def MSE_plot(degrees_list, MSE_train_list, MSE_test_list, mindegree= 0, titles_ 
         axs_.legend()
 
     if len(MSE_train_list) > 1:
-        axs[0].set_ylabel("MSE Error")
+        axs[0].set_ylabel("MSE")
     else:
-        axs.set_ylabel("MSE Error")
+        axs.set_ylabel("MSE")
     plt.grid(True)
     if savefig:
-        plt.savefig(f"{path}/{savename}.png", dpi = 300)
+        plt.savefig(f"{path}/{savename}.pdf", dpi = 300)
     return
 
 
@@ -62,45 +62,48 @@ def MSE_R2_plot(degrees_list, MSE_train_list, MSE_test_list, R2_train_list, R2_t
     axs[0].plot(degrees_list, MSE_test_list, label = "Test", color = colorpal[1])
     axs[1].plot(degrees_list, R2_train_list, label = "Train", color = colorpal[0])
     axs[1].plot(degrees_list, R2_test_list, label = "Test", color = colorpal[1])
-    axs[0].title.set_text(f"MSE")
-    axs[1].title.set_text(f"R2")
     for i in range(2):
         axs[i].set_xlabel("Order of polynomial")
         axs[i].legend()
-    axs[0].set_ylabel("MSE Error")
-    axs[1].set_ylabel("R2 Error")
+    axs[0].set_ylabel("MSE")
+    axs[1].set_ylabel("R2")
     plt.grid(True)
     if savefig:
-        plt.savefig(f"{path}/MSER2_OLS.png", dpi = 300)
+        plt.savefig(f"{path}/MSER2_OLS.pdf", dpi = 300)
     return
 
-def bias_var_plot(degrees_list, bias, variance, MSE_test_list, title = "BiasVar", savefig = False, path = "./Plots/BiasVar"):
+def bias_var_plot(degrees_list, bias, variance, MSE_test_list, savename = "biasvar", savefig = False, path = "./Plots/BiasVar"):
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
     plt.figure(figsize=(7,5), tight_layout=True)
-    plt.title(f"{title}")
     plt.plot(degrees_list, bias, label = "Bias", color = colorpal[0])
     plt.plot(degrees_list, variance, label = "Variance", color = colorpal[1])
-    plt.plot(degrees_list, MSE_test_list, label = "MSE Error", color = colorpal[2])
+    plt.plot(degrees_list, MSE_test_list, label = "MSE", color = colorpal[2])
     plt.xlabel("Order of polynomial")
     plt.ylabel("Numerical estimate")
     plt.grid(True)
     plt.legend()
     if savefig:
-        plt.savefig(f"{path}/{title}.png", dpi = 300)
+        plt.savefig(f"{path}/{savename}.pdf", dpi = 300)
     return
 
-def bias_var_lambdas(degrees_list, ridge, lasso, lambdas, title = "BiasVar", savefig = False, savename = "fig", path = "./Plots/BiasVar"):
+def bias_var_lambdas(degrees_list, lists , lambdas, title = "BiasVar", savefig = False, savename = "fig", path = "./Plots/BiasVarLamb"):
+    pathlib.Path(path).mkdir(parents=True, exist_ok=True)
     fig, axs = plt.subplots(nrows = 1, ncols = 2, sharey = False, tight_layout=True, figsize=(7*2,5))
     linestyles = ["solid", "dotted", "dashed", "dashdot"]
+    methods = ['Ridge', 'Lasso']
     for i in range(2):
-
         for j in range(len(lambdas)):
-            axs[i].plot(degrees_list, ridge[j][0], label = "Error", linestyle=linestyles[0], color = colorpal[i+j])
-            axs[i].plot(degrees_list, ridge[j][1], label = "Bias", linestyle=linestyles[1], color = colorpal[i+j])
-            axs[i].plot(degrees_list, ridge[j][2], label = "Var", linestyle=linestyles[2], color = colorpal[i+j])
+            axs[i].plot(degrees_list, lists[i][j][0], label = f"$\\lambda$={lambdas[j]}", linestyle=linestyles[0], color = colorpal[j])
+            axs[i].plot(degrees_list, lists[i][j][1], linestyle=linestyles[1], color = colorpal[j])
+            axs[i].plot(degrees_list, lists[i][j][2], linestyle=linestyles[2], color = colorpal[j])
         axs[i].legend()
         axs[i].set_xlabel("Order of polynomial")
         axs[i].set_yscale("log")
+
+        axs[i].set_title(methods[i])
+
+    if savefig:
+        plt.savefig(f"{path}/{savename}.pdf", dpi = 300)
     return
 
 
@@ -114,38 +117,17 @@ def betaval_plot(degrees_list, beta_mat, nr_ofbeta, maxdeg, title = "Betavalues"
     plt.ylabel("Optimal parameter")
     plt.legend()
     if savefig:
-        plt.savefig(f"{path}/{title}.png", dpi = 300)
+        plt.savefig(f"{path}/{title}.pdf", dpi = 300)
     return
 
-def gridsearch_plot(MSE_2d_values, lambda_vals, mindeg, maxdeg, savefig = False, savename = "grid", path = "./Plots/Gridsearch"):
+def gridsearch_plot(MSE_2d_values, lambda_vals, mindeg, maxdeg, savefig = False, title = "generic title", savename = "grid", path = "./Plots/Gridsearch"):
     plt.figure(figsize=(7,5), tight_layout=True)
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
-    df= pd.DataFrame(MSE_2d_values, columns= lambda_vals, index = np.arange(mindeg, maxdeg+1))
+    df = pd.DataFrame(MSE_2d_values, columns= lambda_vals, index = np.arange(mindeg, maxdeg+1))
+    df.round(2)
     fig = sns.heatmap(df, cbar_kws={'label': 'MSE'})
     fig.set(xlabel="Lambda", ylabel="Order of polynomial")
+    plt.title(title)
     if savefig:
-        plt.savefig(f"{path}/{savename}.png", dpi = 300)
-    return
-
-
-def function_plot(x, y, z):
-    # Doesent work too well.
-    fig = plt.figure(figsize =(14, 9))
-    ax = plt.axes(projection ='3d')
-
-    # Creating color map
-    my_cmap = plt.get_cmap('hot')
-
-    # Creating plot
-    surf = ax.plot_surface(x, y, z,
-                           cmap = my_cmap,
-                           edgecolor ='none')
-
-    fig.colorbar(surf, ax = ax,
-                 shrink = 0.5, aspect = 5)
-
-    ax.set_title('Surface plot')
-
-    # show plot
-    plt.show()
+        plt.savefig(f"{path}/{savename}.pdf", dpi = 300)
     return

@@ -87,7 +87,7 @@ def Lasso(X_train, X_test, z_train, lamb):
 	return beta_opt, z_tilde_train, z_tilde_test
 
 
-def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval = False, mindegree = 0, maxdegree = 12):
+def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval = False, mindegree = 0, maxdegree = 12, showruninfo = False):
 	#Set up list to store resultss
 	z_pred_list = []
 	MSE_train_list = []#np.zeros(maxdegree-mindegree+1)
@@ -99,22 +99,21 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 	error = np.zeros(maxdegree-mindegree+1)
 	beta_matrix = np.zeros( ( (maxdegree+1)*(maxdegree+2)//2, maxdegree-mindegree+1 ) )
 
-	#Print info when run
-	print(f"Running solver with {method.__name__}. Degrees: {maxdegree}.", end = "")
-	if useBootstrap:
-		print("Using bootstrap ", end ="")
-	elif useCrossval:
-		print(f"Using 5-fold cross validation .")
-	else:
-		1
 
-	print("\n")
+	if showruninfo:
+		#Print info when run
+		print(f"Running solver with {method.__name__}. Degrees: {maxdegree}.", end = "")
+		if useBootstrap:
+			print("Using bootstrap ", end ="")
+		elif useCrossval:
+			print(f"Using 5-fold cross validation .")
+
+		print("\n")
+
 	#Check if correct input
 	if method not in [OLS, Ridge, Lasso, Ridge_scikit]:
 		sys.exit(f"Error: Method [{method}] is not compatible. Must be in [OLS, Ridge, Lasso]")
 
-
-	print(method)
 	if method != OLS and lamb < 0:
 		sys.exit("Error: Lambda must have >=0 value if using Ridge or Lasso")
 
@@ -137,6 +136,7 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 
 		if useBootstrap:
 			N_bootstraps = X_train.shape[0]
+			#N_bootstraps = 20
 			MSE_avg_train = 0
 			MSE_avg_test = 0
 			z_pred = np.empty((X_test.shape[0], N_bootstraps))
