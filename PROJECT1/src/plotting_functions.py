@@ -35,7 +35,7 @@ def MSE_plot(degrees_list, MSE_train_list, MSE_test_list, mindegree= 0, titles_ 
         if len(MSE_train_list) > 1:
             axs_ = axs[i]
         else:
-            axs_ = axs
+            axs_ = axsq
         axs_.autoscale(enable=True, axis="y", tight=False)
         axs_.plot(degrees_list, MSE_train_list[i][mindegree:], label = "Train", color = colorpal[0])
         axs_.plot(degrees_list, MSE_test_list[i][mindegree:], label = "Test", color = colorpal[1])
@@ -93,13 +93,14 @@ def bias_var_lambdas(degrees_list, ridge, lasso, lambdas, title = "BiasVar", sav
     fig, axs = plt.subplots(nrows = 1, ncols = 2, sharey = False, tight_layout=True, figsize=(7*2,5))
     linestyles = ["solid", "dotted", "dashed", "dashdot"]
     for i in range(2):
-        axs[i].set_xlabel("Order of polynomial")
-        axs[i].legend()
+
         for j in range(len(lambdas)):
             axs[i].plot(degrees_list, ridge[j][0], label = "Error", linestyle=linestyles[0], color = colorpal[i+j])
             axs[i].plot(degrees_list, ridge[j][1], label = "Bias", linestyle=linestyles[1], color = colorpal[i+j])
             axs[i].plot(degrees_list, ridge[j][2], label = "Var", linestyle=linestyles[2], color = colorpal[i+j])
         axs[i].legend()
+        axs[i].set_xlabel("Order of polynomial")
+        axs[i].set_yscale("log")
     return
 
 

@@ -104,14 +104,17 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 	if useBootstrap:
 		print("Using bootstrap ", end ="")
 	elif useCrossval:
-		print(f" Using crossvalidation with 5 k-folds.")
-	print("\n")
+		print(f"Using 5-fold cross validation .")
+	else:
+		1
 
+	print("\n")
 	#Check if correct input
 	if method not in [OLS, Ridge, Lasso, Ridge_scikit]:
 		sys.exit(f"Error: Method [{method}] is not compatible. Must be in [OLS, Ridge, Lasso]")
 
-	#Make sure Lambda is positive when using Ridge/Lasso
+
+	print(method)
 	if method != OLS and lamb < 0:
 		sys.exit("Error: Lambda must have >=0 value if using Ridge or Lasso")
 
@@ -213,15 +216,7 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 		z_pred_list.append(z_pred_.reshape(Ny,Nx))
 
 	degrees_list = np.arange(mindegree, maxdegree+1)
-	#Basic plot of MSE scores for train and test.
 
-	"""
-	plt.title(f"{method.__name__} boot: {useBootstrap}, cross: {useCrossval}")
-	plt.plot(degrees_list, MSE_train_list[mindegree:], label = "Train")
-	plt.plot(degrees_list, MSE_test_list[mindegree:], label = "Test")
-	plt.legend()
-	plt.grid(True)
-	"""
 
 	return degrees_list, MSE_train_list, MSE_test_list, bias, variance, beta_matrix, R2_train_list, R2_test_list, z_pred_list
 
