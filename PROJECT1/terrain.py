@@ -38,29 +38,29 @@ def terrain_func(filename, location, selection_size, method):
 
     terrain = terrain.reshape(-1,1) # want array of shape (N,1)
 
-    #x = np.linspace(0, xmax-xmin, selection_size) 
+    #x = np.linspace(0, xmax-xmin, selection_size)
     #y = np.linspace(0, ymax-ymin, selection_size)
     x = np.linspace(-1,1,selection_size) # keep in mind pixel indices are arbitrary units
     y = np.linspace(-1,1,selection_size)
     x, y = np.meshgrid(x,y)
-    
+
     if method==OLS:
         lambda_vals = [0.]
     else:
         lambda_vals = [1e-7]# np.logspace(-8,0,1)
-    
+
     mindeg = 0
     maxdeg = 26
-    
+
     useCrossval = False
     MSE_2d_values = np.zeros((maxdeg-mindeg + 1, len(lambda_vals)))
 
     for lamb_idx, lamb in enumerate(lambda_vals):
-        z_pred_list, degrees_list, MSE_train_list, MSE_test_list, bias, variance, _, _, _ = \
+        degrees_list, MSE_train_list, MSE_test_list, bias, variance, _, _, _, z_pred_list = \
             Solver(x, y, terrain, Nx=selection_size, Ny=selection_size, method=method, \
             lamb = lamb, useBootstrap = useCrossval, useCrossval = useCrossval, mindegree=mindeg,maxdegree=maxdeg)
         MSE_2d_values[:,lamb_idx] = MSE_test_list
-    
+
     #fig = plotfnc.gridsearch_plot(MSE_2d_values, lambda_vals, mindeg, maxdeg, title = "gridsearch", savefig = False, path = "./Plots/Gridsearch")
     """from matplotlib.colors import LogNorm, Normalize
     plt.figure(figsize=(7,5), tight_layout=True)
@@ -69,7 +69,7 @@ def terrain_func(filename, location, selection_size, method):
     axes.imshow(MSE_2d_values, cmap="autumn", norm=LogNorm())
     axes.set_xlabel("Lambda"); axes.set_ylabel("Order of polynomial")
     """
-    
+
     optimal_model_idx = np.argmin(MSE_2d_values)
     optimal_degree = optimal_model_idx//len(lambda_vals) + mindeg
     optimal_lambda_idx = optimal_model_idx%len(lambda_vals)
