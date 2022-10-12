@@ -12,7 +12,7 @@ To reproduce the test runs using the Franke function, run
 
 		python3 main.py
 
-Optionally, the results related to this part can be also visualized using the jupyter-notebook at `test/FrankePlots.ipynb`<\br>
+Optionally, the results related to this part can be also visualized using the jupyter-notebook at `test/FrankePlots.ipynb`<br>
 
 To reproduce the regressions on terrain data, run
 
