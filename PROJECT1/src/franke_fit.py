@@ -87,7 +87,7 @@ def Lasso(X_train, X_test, z_train, lamb):
 	return beta_opt, z_tilde_train, z_tilde_test
 
 
-def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval = False, mindegree = 0, maxdegree = 12, showruninfo = False):
+def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval = False, mindegree = 0, maxdegree = 12, showruninfo = False, useRandomState = True):
 	#Set up list to store resultss
 	z_pred_list = []
 	MSE_train_list = []#np.zeros(maxdegree-mindegree+1)
@@ -117,6 +117,9 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 	if method != OLS and lamb < 0:
 		sys.exit("Error: Lambda must have >=0 value if using Ridge or Lasso")
 
+	if useRandomState:
+		# makes results non-random
+		random_state = 26092022
 
 	for degree in range(mindegree, maxdegree+1):
 		#print(f"Degree {degree}/{maxdegree}")
@@ -132,7 +135,7 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 
 
 		#X = X[:,1:] #remove first column to remove intercept.
-		X_train, X_test, z_train, z_test = train_test_split(X,z, test_size=0.2, random_state=26092022) #Split into train and test
+		X_train, X_test, z_train, z_test = train_test_split(X,z, test_size=0.2, random_state=random_state) #Split into train and test
 
 		if useBootstrap:
 			N_bootstraps = X_train.shape[0]
@@ -168,7 +171,10 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 			#X, z = shuffle(X, z) #shuffle dataset corresponding
 			# Seperate data into k folds
 			k = 5
-			kfold = KFold(n_splits = k, shuffle = True)
+			if useRandomState:
+				kfold = KFold(n_splits = k, shuffle = True, random_state=random_state)
+			else:
+				kfold = KFold(n_splits = k, shuffle = True)
 			for train_inds, test_inds in kfold.split(X_train):
 				X_train_k, X_test_k = X_train[train_inds], X_train[test_inds]
 				z_train_k, z_test_k = z_train[train_inds], z_train[test_inds]
