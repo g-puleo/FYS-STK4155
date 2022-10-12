@@ -9,7 +9,7 @@ This file is in the format of a scientific article.
 It is necessary to have python3 installed, in particular we tested our code with the following modules installed:
 
 * `scikit-learn` ver. = 0.24.2
-* `numpy` ver. = 1.20.2 
+* `numpy` ver. = 1.20.2
 * `pandas` ver. = 1.2.5
 * `seaborn` ver. =0.11.1
 * `matplotlib` ver. =3.3.4
@@ -19,9 +19,9 @@ It is necessary to have python3 installed, in particular we tested our code with
 First clone the repository using
 
 		git clone https://github.com/giammy00/FYS-STK4155.git
-	
-Then navigate to the `PROJECT1` folder.	
-To reproduce the test runs using the Franke function, run 
+
+Then navigate to the `PROJECT1` folder.
+To reproduce the test runs using the Franke function, run which asks user if one wishes to reproduce all figures and then plot.
 
 		python3 main.py
 
@@ -31,14 +31,14 @@ To reproduce the regressions on terrain data, run
 
 		python3 terrain.py
 
-both runs should produce all of the plots which are present in the report. 
+both runs should produce all of the plots which are present in the report.
 
 ## Summary of codes
 
 The algorithms are coded into different files contained in the `src` folder. Hereby we briefly summarize them:
 
 1. 	`franke_fit.py` contains the definition of a `Solver` function, which is repeatedly used in `main.py` and `terrain.py`.
-	In this file there are also the definitions of functions which perform OLS, Ridge, and LASSO regressions. 
+	In this file there are also the definitions of functions which perform OLS, Ridge, and LASSO regressions.
 
 2. 	`utils.py` is a tiny library of small functions we wrote to improve the readability of the code
 
@@ -51,4 +51,3 @@ The algorithms are coded into different files contained in the `src` folder. Her
 [Ivar](https://github.com/ivarlon)
 
 [Elias](https://github.com/EliasTRuud)
-
