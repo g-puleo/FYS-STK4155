@@ -1,5 +1,3 @@
-
-
 import sys, os
 sys.path.insert(1, './src') #Search the src folder for the modules
 import plotting_functions as plotfnc
@@ -10,6 +8,22 @@ import utils
 
 
 def generate_reults(showfigs = False):
+    """
+    Generate all the results for FrankeFunction shown in report. Figures will be saved
+    to folder ./Plots in different subdirectories depending on the plottingfunction being used.
+
+    Figures are generated in the order:
+    - MSE and R2 scores as function of the polynomial degree, OLS
+    - beta parameters, as function of polydeg, OLS
+    - Bias-variance tradeoff, as function of polydeg using only bootstrap, and only OLS
+    - Comparison between estimates of MSE in crossval and bootstrap, OLS. 2 plots to reuse plotting func
+    - Crossvalidation with k-fold gridsearch with ridge and lasso. MSE score
+    - No resampling gridsearch with ridge and lasso. MSE score
+    - Bias variance tradeoff. Using ridge and lasso, both with bootstrap.
+
+    Args:
+        showfigs (bool) : Set True to display all figures that are generated, default = False
+    """
     methods = [OLS, Ridge, Lasso]
     np.random.seed(3463223)
     np.random.seed(133)
@@ -48,7 +62,7 @@ def generate_reults(showfigs = False):
     plotfnc.bias_var_plot(degrees_list, bias, variance, MSE_test_list, savename = "biasvar_bootOLS",  savefig = True)
 
     #(4)COMPARISON BETWEEN ESTIMATES OF MSE IN CROSSVAL AND BOOTSTRAP, OLS. 2 plots to reuse plotting func
-    #Bootstrap value goes a bit crazy for higher complexity which used to a problem which i thought was fixed
+    #Bootstrap value goes a bit crazy for higher complexity.
     print("Plotting MSE for OLS w/boot and w/crossval.")
     maxdeg = 11
     MSE_list_train = []
@@ -94,7 +108,6 @@ def generate_reults(showfigs = False):
             MSE_2d[j,i] = MSE_test_list[j] #fix indexing cause of length
     plotfnc.gridsearch_plot(MSE_2d, lambda_vals, mindeg, maxdeg, title = "Lasso", savename="Lasso_crossval_grid", savefig = True)
 
-
     #(6) No resampling gridsearch with ridge and lasso. MSE score
     print("Plotting gridsearch MSE, ridge and lasso.")
     maxdeg = 13
@@ -122,8 +135,6 @@ def generate_reults(showfigs = False):
             MSE_2d[j,i] = MSE_test_list[j] #fix indexing cause of length
     plotfnc.gridsearch_plot(MSE_2d, lambda_vals, mindeg, maxdeg, title = "Lasso", savename="Lasso_grid", savefig = True)
 
-
-
     #7 Bias variance tradeoff. Using ridge and lasso, both with bootstrap.
     print("Plotting bias variance with ridge and lasso using bootstrap.")
     lambda_vals = np.array([1e-5, 1e-1,  50 ])
@@ -137,10 +148,9 @@ def generate_reults(showfigs = False):
             degrees_list, MSE_train_list, MSE_test_list, bias, variance, _, _, _, _ = \
             Solver(x_, y_, z_, Nx_, Ny_, method, useBootstrap=True, useCrossval=False, lamb=lambda_, mindegree = mindeg, maxdegree = maxdeg)
             lists[jj].append([MSE_test_list, bias, variance])
-
-
     plotfnc.bias_var_lambdas(degrees_list, lists, lambda_vals, savename="biasvarname", savefig=True)
 
+    #Finished
     print("Finished all results for FrankeFunction. ")
     col = os.get_terminal_size()[0]
     print("-"*col + "\n")
@@ -151,6 +161,13 @@ def generate_reults(showfigs = False):
 
 
 def get_bool(var):
+    """
+    Simple function to evaluate answer from y(yes) or n(no) paramter.
+    Args:
+        var (string) : Answer to be interpreted
+    Returns:
+        val_ (bool) : True if answer is y, flase if n or exits program if not either.
+    """
     if var == "y":
         var_ = True
     elif var == "n":
@@ -161,8 +178,6 @@ def get_bool(var):
 
 def main():
     #Run to generate all the plots using the frankie function.
-    #generate_reults(showfigs = False)
-
     bool_gen = input("Do you want to generate all figures for FrankeFunction? (y/n)")
     bool_gen = get_bool(bool_gen)
     if bool_gen:
@@ -171,21 +186,10 @@ def main():
         print("")
         generate_reults(showfigs = bool_show)
 
-
-
-
-
-    #plot_terrain()
-
-
     #Plot whatever you want.
-
     #gen x, y ,z data
     # Call on solver with parameters
     # Call on what to plot.
-
-    #Terrain Data example.
-    #terrain plotting.
     return
 
 if __name__ == "__main__":

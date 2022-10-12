@@ -1,8 +1,3 @@
-#File to generate all the plots and results for the report.
-
-#Including frankefunction 3d, betavalues, MSE, bias-variance, gridsearch
-
-# Bonus: visualize the predicted z-values in 3d-space.
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -12,11 +7,8 @@ from franke_fit import *
 import utils
 from mpl_toolkits import mplot3d
 import matplotlib
-#matplotlib.rcParams['text.usetex'] = True
 
 colorpal = sns.color_palette("deep")
-
-
 sns.set_style('darkgrid') # darkgrid, white grid, dark, white and ticks
 plt.rc('axes', titlesize=18)     # fontsize of the axes title
 plt.rc('axes', labelsize=14)    # fontsize of the x and y labels
@@ -25,8 +17,20 @@ plt.rc('ytick', labelsize=13)    # fontsize of the tick labels
 plt.rc('legend', fontsize=13)    # legend fontsize
 plt.rc('font', size=13)          # controls default text sizes
 
-
 def MSE_plot(degrees_list, MSE_train_list, MSE_test_list, mindegree= 0, titles_ = ["MSE"], savefig = False, savename = "MSE", path = "./Plots/MSE"):
+    """
+    Plots the MSE for test and training and saves figure to path. Can take mulitple data of MSE for
+    different runs and will automatically extend the figure and include anohter plot.
+    Args:
+        degrees_list (ndarray) : 1D containing degrees of complexity for x-axis
+        MSE_train_list (ndarray) : Nested array, contains MSE for the train data for y-axis
+        MSE_test_list (ndarray) : Nested array, contains MSE for the test data for y-axis
+        mindegree = 0 (ndarray) :  Min degree to start x-axis , default = 0
+        titles_ (list[string]) : List of titles to apply to figure, default = ["MSE"]
+        savefig (bool) : True to save figure, default = False
+        savename (string) : Name of file to save, default = "MSE"
+        path (string) : Path to save figure, default = "./Plots/MSE"
+    """
     fig, axs = plt.subplots(nrows = 1, ncols = len(MSE_train_list), sharey = True, tight_layout=True, figsize=(7*len(MSE_train_list),5))
     plt.gca().set_ylim(bottom=0)
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
@@ -52,8 +56,18 @@ def MSE_plot(degrees_list, MSE_train_list, MSE_test_list, mindegree= 0, titles_ 
         plt.savefig(f"{path}/{savename}.pdf", dpi = 300)
     return
 
-
 def MSE_R2_plot(degrees_list, MSE_train_list, MSE_test_list, R2_train_list, R2_test_list, savefig = False, path = "./Plots/MSER2"):
+    """
+    Subplot the MSE and R2 score for test and training and saves figure to path if requested.
+    Args:
+        degrees_list (ndarray) : 1D containing degrees of complexity for x-axis
+        MSE_train_list (ndarray) : Contains MSE for the train data for y-axis
+        MSE_test_list (ndarray) : Contains MSE for the test data for y-axis
+        R2_train_list (ndarray) : Contains R2 scores for the train data for y-axis
+        R2_test_list (ndarray) : Contains R2 scores for the test data for y-axis
+        savefig (bool) : True to save figure, default = False
+        path (string) : Path to save figure, default = "./Plots/MSER2"
+    """
     fig, axs = plt.subplots(nrows = 1, ncols = 2, sharey = False, tight_layout=True, figsize=(7*2,5))
     plt.gca().set_ylim(bottom=0)
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
@@ -73,6 +87,17 @@ def MSE_R2_plot(degrees_list, MSE_train_list, MSE_test_list, R2_train_list, R2_t
     return
 
 def bias_var_plot(degrees_list, bias, variance, MSE_test_list, savename = "biasvar", savefig = False, path = "./Plots/BiasVar"):
+    """
+    Plot the bias, variance and error for test and training and saves figure to path if requested.
+    Args:
+        degrees_list (ndarray) : 1D containing degrees of complexity for x-axis
+        bias (ndarray) : Contains the bias for the train data for y-axis
+        variance (ndarray) : Contains the variance for the train data for y-axis
+        MSE_test_list (ndarray) : Contains the MSE for the test data for y-axis
+        savename (string) : : Name of file to save, default = "biasvar"
+        savefig (bool) : True to save figure, default = False
+        path (string) : Path to save figure, default = "./Plots/BiasVar"
+    """
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
     plt.figure(figsize=(7,5), tight_layout=True)
     plt.plot(degrees_list, bias, label = "Bias", color = colorpal[0])
@@ -87,6 +112,17 @@ def bias_var_plot(degrees_list, bias, variance, MSE_test_list, savename = "biasv
     return
 
 def bias_var_lambdas(degrees_list, lists , lambdas, title = "BiasVar", savefig = False, savename = "fig", path = "./Plots/BiasVarLamb"):
+    """
+    Plots the bias, variance and error for different lambdas. First plot being with Ridge method and second with Lasso.
+    Args:
+        degrees_list (ndarray) : 1D containing degrees of complexity for x-axis
+        lists (ndarray) : Inludes all the data: bias, variance and error for both methods.
+        variance (ndarray) : Contains the variance for the train data for y-axis
+        MSE_test_list (ndarray) : Contains the MSE for the test data for y-axis
+        savename (string) : : Name of file to save, default = "biasvar"
+        savefig (bool) : True to save figure, default = False
+        path (string) : Path to save figure, default = "./Plots/BiasVar"
+    """
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
     fig, axs = plt.subplots(nrows = 1, ncols = 2, sharey = False, tight_layout=True, figsize=(7*2,5))
     linestyles = ["solid", "dotted", "dashed", "dashdot"]
@@ -106,8 +142,18 @@ def bias_var_lambdas(degrees_list, lists , lambdas, title = "BiasVar", savefig =
         plt.savefig(f"{path}/{savename}.pdf", dpi = 300)
     return
 
-
 def betaval_plot(degrees_list, beta_mat, nr_ofbeta, maxdeg, title = "Betavalues", savefig = False, path = "./Plots/Betamatrix"):
+    """
+    Plots the first number of beta values and saves figure.
+    Args:
+        degrees_list (ndarray) : 1D containing degrees of complexity for x-axis
+        beta_mat (ndarray) : Contains the beta matrix
+        nr_ofbeta (int) : Number of betas to plot starting with 0.
+        maxdeg (int) : Set the max degree for the polynomial to plot
+        title (string) : : Title of figure, default = "Betavalues"
+        savefig (bool) : True to save figure, default = False
+        path (string) : Path to save figure, default = "./Plots/Betamatrix"
+    """
     plt.figure(figsize=(7,5), tight_layout=True)
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
     for i in range(nr_ofbeta):
@@ -120,7 +166,19 @@ def betaval_plot(degrees_list, beta_mat, nr_ofbeta, maxdeg, title = "Betavalues"
         plt.savefig(f"{path}/{title}.pdf", dpi = 300)
     return
 
-def gridsearch_plot(MSE_2d_values, lambda_vals, mindeg, maxdeg, savefig = False, title = "generic title", savename = "grid", path = "./Plots/Gridsearch"):
+def gridsearch_plot(MSE_2d_values, lambda_vals, mindeg, maxdeg, savefig = False, title = "Generic title", savename = "grid", path = "./Plots/Gridsearch"):
+    """
+    Plots a heatmap showing the MSE values for given different lambdas and degrees of complexity. Saves figure to path.
+    Args:
+        MSE_2d_values (ndarray) : 2D array which contains the MSE values
+        lambda_vals (ndarray) : Contains all the lambda values
+        mindeg (int) : Set the min degree for the polynomial to plot
+        maxdeg (int) : Set the max degree for the polynomial to plot
+        savefig (bool) : True to save figure, default = False
+        title (string) : : Title of figure, default = "Generic title"
+        savename (string) : Name to which to save the file as, default = "grid"
+        path (string) : Path to save figure, default = "./Plots/Gridsearch"
+    """
     plt.figure(figsize=(7,5), tight_layout=True)
     pathlib.Path(path).mkdir(parents=True, exist_ok=True)
     df = pd.DataFrame(MSE_2d_values, columns= lambda_vals, index = np.arange(mindeg, maxdeg+1))
