@@ -135,8 +135,12 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 
 
 		#X = X[:,1:] #remove first column to remove intercept.
-		X_train, X_test, z_train, z_test = train_test_split(X,z, test_size=0.2, random_state=random_state) #Split into train and test
-
+		#Split into train and test
+		if useRandomState:
+			X_train, X_test, z_train, z_test = train_test_split(X,z, test_size=0.2, random_state=random_state)
+		else:
+			X_train, X_test, z_train, z_test = train_test_split(X,z, test_size=0.2)
+		
 		if useBootstrap:
 			N_bootstraps = X_train.shape[0]
 			#N_bootstraps = 20
