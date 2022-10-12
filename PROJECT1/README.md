@@ -2,6 +2,7 @@ Linear regression as an example of machine learning, with an analysis of the Fra
 ==============================
 In this project we implement codes which we can use to perform linear regression, using OLS, Ridge and LASSO methods.
 A detailed description of the methods and of our results can be found in the file called `report.pdf` inside this folder.
+This file is in the format of a scientific article.
 
 ## Requirements
 
@@ -15,7 +16,11 @@ It is necessary to have python3 installed, in particular we tested our code with
 
 
 ## Reproduction of results
+First clone the repository using
 
+		git clone https://github.com/giammy00/FYS-STK4155.git
+	
+Then navigate to the `PROJECT1` folder.	
 To reproduce the test runs using the Franke function, run 
 
 		python3 main.py
