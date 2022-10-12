@@ -87,7 +87,7 @@ def Lasso(X_train, X_test, z_train, lamb):
 	return beta_opt, z_tilde_train, z_tilde_test
 
 
-def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval = False, mindegree = 0, maxdegree = 12, showruninfo = False, useRandomState = True):
+def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval = False, mindegree = 0, maxdegree = 12, showruninfo = False, useRandomState = True, nonrandomCrossVal = False):
 	#Set up list to store resultss
 	z_pred_list = []
 	MSE_train_list = []#np.zeros(maxdegree-mindegree+1)
@@ -175,13 +175,19 @@ def Solver(x, y, z, Nx, Ny, method, lamb = 0, useBootstrap = False, useCrossval 
 			#X, z = shuffle(X, z) #shuffle dataset corresponding
 			# Seperate data into k folds
 			k = 5
-			if useRandomState:
+			if useRandomState and nonrandomCrossVal:
+				# if performing model selection we want cross val to be nonrandom and use the same folds of the same training set each run
 				kfold = KFold(n_splits = k, shuffle = True, random_state=random_state)
+				X_train_ = X_train
+				z_train_ = z_train
 			else:
+				# resamples all data
 				kfold = KFold(n_splits = k, shuffle = True)
-			for train_inds, test_inds in kfold.split(X_train):
-				X_train_k, X_test_k = X_train[train_inds], X_train[test_inds]
-				z_train_k, z_test_k = z_train[train_inds], z_train[test_inds]
+				X_train_ = X
+				z_train_ = z
+			for train_inds, test_inds in kfold.split(X_train_):
+				X_train_k, X_test_k = X_train_[train_inds], X_train_[test_inds]
+				z_train_k, z_test_k = z_train_[train_inds], z_train_[test_inds]
 				if degree==0:
 					# if deg=0 just have the intercept = mean(z)
 					z_mean_train = np.array([[np.mean(z_train_k)]])
