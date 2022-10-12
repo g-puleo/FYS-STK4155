@@ -138,7 +138,8 @@ def crossval_modelselection(locations, selection_size, method,lambda_vals,mindeg
         # plotting relative validation MSE as fn of lambda for the degree with minimal validation MSE
         # (to illustrate dependecy on lambda)
         row_idx = np.argmin(validation_MSE)//validation_MSE.shape[1]
-        ax_lambda.plot(lambda_vals, validation_MSE[row_idx]/np.var(h))
+        ax_lambda.plot(lambda_vals, validation_MSE[row_idx]/np.var(h), label=f"Degree {row_idx + mindeg}")
+        ax_lambda.legend()
         ax_lambda.set_xlabel("$\lambda$")
         ax_lambda.set_ylabel("Val. MSE / Var(terrain)")
         ax_lambda.set_xscale("log")
@@ -260,6 +261,8 @@ if saveFigs:
     fig_OLS.savefig(f"{path}/terrain_MSE_test_with_OLS.pdf", dpi=300)
     fig.savefig(f"{path}/terrain_predictions.pdf", dpi=300)
 
-print("Mean relative errors:\n", mean_relerror_dict)
+print("Mean relative errors:")
+for key in mean_relerror_dict:
+    print(key, ":", mean_relerror_dict[key])
 
 plt.show()
