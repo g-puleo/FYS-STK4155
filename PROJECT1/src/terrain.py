@@ -183,7 +183,7 @@ def crossval_modelselection(locations, selection_size, method,lambda_vals,mindeg
 
 def get_mean_relerror(pred,data):
     # returns the mean rel. error for predictions of data
-    relerror_array = np.abs((pred - data)/data).ravel()
+    relerror_array = ((pred - data)/data).ravel()
     return 1/len(relerror_array) * np.linalg.norm(relerror_array, ord=1)
 
 # plotting data
