@@ -18,7 +18,7 @@ To reproduce the regressions on terrain data, run
 
 		python3 terrain.py
 
-## Structure of folder
+## Summary of codes
 
 The algorithms are coded into different files contained in the `src` folder. Hereby we briefly summarize them:
 
@@ -27,7 +27,7 @@ The algorithms are coded into different files contained in the `src` folder. Her
 
 2. 	`utils.py` is a tiny library of small functions we wrote to improve the readability of the code
 
-3. 	`plotting_functions.py` contains a series of functions which are utilized by main.py
+3. 	`plotting_functions.py` contains a series of functions which are utilized to display the results of tests using the Franke function.
 
 ## Aknowledgements
 
