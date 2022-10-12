@@ -237,12 +237,12 @@ for jj, method in enumerate(methods):
 
             modeldegree = np.argmin(MSE_test_list) + mindeg
             prediction = z_pred_list[np.argmin(MSE_test_list)]
-            ax.set_title(f"OLS, p={modeldegree}", fontsize=10)
+            ax.set_title(f"OLS, d={modeldegree}", fontsize=10)
         else:
             prediction = predictions[ii]
             modeldegree = optimal_params[ii][0]
             lamb = optimal_params[ii][1]
-            ax.set_title("{:s}, p={:.0f}, $\lambda$={:.2e}".format(method.__name__, modeldegree, lamb),\
+            ax.set_title("{:s}, d={:.0f}, $\lambda$={:.2e}".format(method.__name__, modeldegree, lamb),\
                 fontsize=10)
         
         ims[ii+jj] = ax.imshow(prediction, cmap="gray")
