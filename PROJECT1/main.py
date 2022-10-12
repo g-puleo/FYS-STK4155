@@ -177,6 +177,10 @@ def get_bool(var):
     return var_
 
 def main():
+    """
+    Asks if user wants to generate figures and plot.
+    Simply answer y or n. 
+    """
     #Run to generate all the plots using the frankie function.
     bool_gen = input("Do you want to generate all figures for FrankeFunction? (y/n)")
     bool_gen = get_bool(bool_gen)
