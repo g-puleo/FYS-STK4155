@@ -4,7 +4,15 @@ In this project we implement codes which we can use to perform linear regression
 A detailed description of the methods and of our results can be found in the file called `report.pdf` inside this folder.
 
 ## Requirements
-It is necessary to have python3 installed, with the scikit-learn module (codes were tested using ver. 0.24.2).
+
+It is necessary to have python3 installed, in particular we tested our code with the following modules installed:
+
+* `scikit-learn` ver. = 0.24.2
+* `numpy` ver. = 1.20.2 
+* `pandas` ver. = 1.2.5
+* `seaborn` ver. =0.11.1
+* `matplotlib` ver. =3.3.4
+
 
 ## Reproduction of results
 
