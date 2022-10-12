@@ -31,6 +31,8 @@ To reproduce the regressions on terrain data, run
 
 		python3 terrain.py
 
+both runs should produce all of the plots which are present in the report. 
+
 ## Summary of codes
 
 The algorithms are coded into different files contained in the `src` folder. Hereby we briefly summarize them:
