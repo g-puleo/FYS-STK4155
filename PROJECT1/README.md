@@ -1,4 +1,4 @@
-Linear regression as an example of machine learning, with an analysis of the Franke function and the territory of Møstvall Austfjell.
+Linear regression as an example of machine learning, with an analysis of the Franke function and the territory of Møsvatn Austfjell.
 ==============================
 In this project we implement codes which we can use to perform linear regression, using OLS, Ridge and LASSO methods.
 A detailed description of the methods and of our results can be found in the file called `report.pdf` inside this folder.
