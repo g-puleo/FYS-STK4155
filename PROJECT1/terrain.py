@@ -18,6 +18,9 @@ The code prints the optimal model parameters for each method: degree and (for Ri
 The saveFigs bool saves the figures if set to True.
 """
 
+import sys, os
+sys.path.insert(1, './src') #Search the src folder for the modules
+
 import franke_fit as ff
 import numpy as np
 import matplotlib
@@ -29,7 +32,11 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 import pathlib
 
-saveFigs = True
+from main import get_bool
+
+saveFigs = input("Do you want to save figures? y/n")
+saveFigs = get_bool(saveFigs)
+
 path = "./Plots/Terrain"
 pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
@@ -92,7 +99,7 @@ def crossval_modelselection(locations, selection_size, method,lambda_vals,mindeg
     '''
     Performs a model selection for Ridge/Lasso.
     Note:
-        This function assumes that the crossval method in the solver function has a set randomstate
+        This function forces the crossval method in the solver function to have a set randomstate
         Otherwise when selecting the lambdas we would get different/random folds when fixing degree and varying lambda
     
     -Uses the franke_fit.Solver method with cross-validation to get a MSE_validation score
@@ -114,6 +121,7 @@ def crossval_modelselection(locations, selection_size, method,lambda_vals,mindeg
     optimal_params = []
     fig, axs = plt.subplots(1,len(locations),figsize=(14,5)) # figure for plotting MSE_test
     fig_lambda, axs_lambda = plt.subplots(1,len(locations),figsize=(14,5)) # figure for plotting MSE as fn of lambda
+    nonrandomCrossVal = True
     for jj in range(len(locations)):
         
         ax = axs[jj]
@@ -130,7 +138,7 @@ def crossval_modelselection(locations, selection_size, method,lambda_vals,mindeg
         for ii, lamb in enumerate(lambda_vals):
             current_validation_MSE_list = ff.Solver(x, y, h, Nx=selection_size, Ny=selection_size, method=method, \
                     lamb = lamb, useBootstrap = False, useCrossval = True,\
-                    mindegree=mindeg,maxdegree=maxdeg, useRandomState=True)[2]
+                    mindegree=mindeg,maxdegree=maxdeg, useRandomState=True, nonrandomCrossVal=nonrandomCrossVal)[2]
             # ff.Solver()[2] corresponds to the MSE_test_list, which contains the MSE_test estimates
             # for various polynomial degrees.
             validation_MSE[:,ii] = np.array(current_validation_MSE_list)
@@ -191,8 +199,8 @@ def get_mean_relerror(pred,data):
 plot_raw_terrain()
 
 # setting some parameters
-mindeg = 3
-maxdeg = 25
+mindeg = int(input("Input minimum polynomial degree to check: "))
+maxdeg = int(input("Input maximum polynomial degree to check: "))
 locations = [(1270,1290), (1180,160)]
 selection_size = 50
 methods = [ff.OLS, ff.Ridge, ff.Lasso]
@@ -237,12 +245,12 @@ for jj, method in enumerate(methods):
 
             modeldegree = np.argmin(MSE_test_list) + mindeg
             prediction = z_pred_list[np.argmin(MSE_test_list)]
-            ax.set_title(f"OLS, p={modeldegree}", fontsize=10)
+            ax.set_title(f"OLS, d={modeldegree}", fontsize=10)
         else:
             prediction = predictions[ii]
             modeldegree = optimal_params[ii][0]
             lamb = optimal_params[ii][1]
-            ax.set_title("{:s}, p={:.0f}, $\lambda$={:.2e}".format(method.__name__, modeldegree, lamb),\
+            ax.set_title("{:s}, d={:.0f}, $\lambda$={:.2e}".format(method.__name__, modeldegree, lamb),\
                 fontsize=10)
         
         ims[ii+jj] = ax.imshow(prediction, cmap="gray")
